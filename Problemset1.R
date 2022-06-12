@@ -1,4 +1,4 @@
-# Paula Ramos, Karen Uribe y Juan Urquijo
+# Paula Ramos, Karen Uribe y Juan D. Urquijo
 # update: 12-06-2022
 ## install pacman
 ##install.packages("pacman")
