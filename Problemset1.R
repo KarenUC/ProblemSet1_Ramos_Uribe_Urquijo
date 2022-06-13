@@ -16,13 +16,37 @@ library(tidyverse)
 library(rvest)
 Data1 <- read_html("https://ignaciomsarmiento.github.io/GEIH2018_sample/page1.html")
 
-###hacer el proceso de webscraping para cargar la tabla ###
 
-db <-read_html("https://ignaciomsarmiento.github.io/GEIH2018_sample/")
-db
-allTables <- html_nodes(db, css = "li") ##Li es elemento lista en Html
+###----------------- Project Set 1----------###
 
-html_elements(db, "li") 
+##### ---Limpiar Ambiente --- ###### 
+rm(list = ls())
 
+##### ---Cargar Librerías --- ###### 
+
+
+library(rvest)
+library(stringr)
+library(dplyr)
+library(RSelenium)
+library(Rcpp)
+
+
+db= "https://ignaciomsarmiento.github.io/GEIH2018_sample/"
+
+links <- read_html(db) %>% 
+  html_nodes("a") %>% 
+  html_attr("href") %>% 
+  grep("page",.,value=TRUE)
+
+
+
+links <- links[-c(1)] 
+
+urls <- links
+base_url <- db
+final_urls <- paste0(base_url, urls)
+# inspect
+final_urls
 
 
