@@ -16,3 +16,11 @@ library(tidyverse)
 library(rvest)
 Data1 <- read_html("https://ignaciomsarmiento.github.io/GEIH2018_sample/page1.html")
 
+###hacer el proceso de webscraping para cargar la tabla ###
+
+db <-read_html("https://ignaciomsarmiento.github.io/GEIH2018_sample/")
+db
+allTables <- html_nodes(db, css = "li") ##Li es elemento lista en Html
+
+allTables
+
