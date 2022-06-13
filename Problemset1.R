@@ -22,5 +22,7 @@ db <-read_html("https://ignaciomsarmiento.github.io/GEIH2018_sample/")
 db
 allTables <- html_nodes(db, css = "li") ##Li es elemento lista en Html
 
-allTables
+html_elements(db, "li") 
+
+
 
