@@ -1,8 +1,8 @@
-# ProblemSet1_Ramos_Uribe_Urquijo
+# ProblemSet1_Ramos_Uribe_Urquijo - MECA 4107
 
 En este repositorio se encuentra el desarrollo del primer problem set de la asignatura BigData-MECA, desarrollado por Ramos Paula, Uribe Karen y Urquijo Juan
  
-#Contenido
+## Contenido
 
 Este trabajo contiene:
 
