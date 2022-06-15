@@ -52,7 +52,7 @@ final_urls <- paste0(base_url, urls)
 # inspect
 final_urls
 
-## 2. a) Data Cleaning
+### --- 2. a) Data Cleaning --- ###
 
 # Importamos los datos y los asignamos a un objeto llamado db
 
@@ -88,12 +88,13 @@ db <- db %>%
 # Eliminamos la variable Var.1
 db <- db[, 2:ncol(db)]
 
-### Filtrado base
+### --- Filtrado base
 
-db_filtro <- subset(db, age >= 18 | ocu == 1)
-
+db_filtro <- subset(db, age >= 18 & ocu == 1)
 
 ### Variables escogidas: Basados en ecuación de Mincer
+# Hogar: directorio
+# Relación jefe del hogar: p6050
 # Factores de expansión: fex_c
 # y ingreso: ingtotes (ingreso total imputado), ingtotob (ingreso total observado), ingtot (ingreso total)
 # 1. Escolaridad: p6210s1, p6210, maxEducLevel
@@ -105,14 +106,63 @@ db_filtro <- subset(db, age >= 18 | ocu == 1)
 # 7. Formal o Informal: formal, informal
 # 8. Area rural/urbano: clase
 # 9. Ocupación: oficio
-# 10. Tamaño de la empresa: sizeFirm
-# 11. Segundo trabajo: p7040
+# 10.Tamaño de la empresa: sizeFirm
+# 11.Segundo trabajo: p7040
 
-Base_var <- db_filtro %>% select(fex_c, ingtot, ingtotob, p6210s1, p6210, maxEducLevel, p6426, age, sex,  estrato1, formal, 
-                                 informal, clase, oficio, sizeFirm, p7040 )
-
-
+Base_var <- db_filtro %>% select(directorio, p6050, fex_c, ingtot, ocu, p6210s1, p6210, maxEducLevel, p6426, age, sex,  estrato1, formal, 
+                                 informal, clase, oficio, sizeFirm, p7040)
 skim(Base_var)
 
+### --- Missing Values
+
+# Sacar cantidad de NAs por variable
+
+cantidad_na <- sapply(Base_var, function(x) sum(is.na(x)))
+cantidad_na <- data.frame(cantidad_na)
+porcentaje_na <- cantidad_na/nrow(Base_var)
+
+# Porcentaje de observaciones faltantes. 
+p <- mean(porcentaje_na[,1])
+print(paste0("En promedio el ", round(p*100, 2), "% de las entradas están vacías"))
+
+# Ordenamos de mayor a menor
+porcentaje_na <- arrange(porcentaje_na, desc(cantidad_na))
+
+# Convertimos el nombre de la fila en columna
+porcentaje_na <- rownames_to_column(porcentaje_na, "variable")
+
+### --- Estadisticas Descriptivas --- ###
+
+library(stargazer)
+
+stargazer(Base_var)
+
+skim(Base_var)  %>% 
+  yank("factor")
+
+# Graficas
+
+# Ingresos vs. estrato y sexo
+
+box_plot <- ggplot(data=Base_var , mapping = aes(as.factor(estrato1) , ingtot)) + 
+  geom_boxplot()
+
+box_plot <- box_plot +
+  geom_point(aes(colour=as.factor(sex))) +
+  scale_color_manual(values = c("0"="red" , "1"="blue") , label = c("0"="Hombre" , "1"="Mujer") , 
+                     name = "Sexo")
+box_plot
+
+# Densidad Ingresos por formal, informal 
+
+
+graph2 <- ggplot(data = Base_var , 
+                 mapping = aes(x = age , y = ingtot , group=as.factor(formal) , color=as.factor(formal))) +
+  geom_point()
+
+graph2
+
+
+###--- 3. Age-earnings profile
 
 
