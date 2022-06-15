@@ -166,4 +166,9 @@ graph2
 
 ###--- 3. Age-earnings profile
 
-
+library(jtools)
+## Model 
+Base_var$age_2 <- sqrt(Base_var$age)
+model_income<-lm(ingtot~age + age_2, 
+                 data= Base_var)
+summ(model_income)
