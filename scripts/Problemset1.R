@@ -1,12 +1,13 @@
 # Paula Ramos, Karen Uribe y Juan D. Urquijo
-# update: 14-06-2022
+# update: 15-06-2022
 
 ###----------------- Project Set 1----------###
 
-###42## ---Limpiar Ambiente --- ###### 
+##### ---Limpiar Ambiente --- ###### 
+
 rm(list = ls())
 
-##### ---Cargar Librerías --- ###### 
+##### ---Cargar Librer?as --- ###### 
 
 library(rvest)
 library(stringr)
@@ -16,16 +17,16 @@ library(Rcpp)
 
 require(pacman)
 
-# usar la función p_load de pacman para instalar/llamar las librerías de la clase
+# usar la funci?n p_load de pacman para instalar/llamar las librer?as de la clase
 
-p_load(rio) # Librería para importar datos 
-p_load(tidyverse) # Librería para limpiar datos
-p_load(e1071) # Tiene la función para calcular skewness
-p_load(EnvStats) # Transformación Box-Cox
+p_load(rio) # Librer?a para importar datos 
+p_load(tidyverse) # Librer?a para limpiar datos
+p_load(e1071) # Tiene la funci?n para calcular skewness
+p_load(EnvStats) # Transformaci?n Box-Cox
 p_load(tidymodels) # Modelos ML
-p_load(ggplot2) # Librería para visualizar datos
-p_load(scales) # Formato de los ejes en las gráficas
-p_load(ggpubr) # Combinar gráficas
+p_load(ggplot2) # Librer?a para visualizar datos
+p_load(scales) # Formato de los ejes en las gr?ficas
+p_load(ggpubr) # Combinar gr?ficas
 p_load(knitr) # Tablas dentro de Rmarkdown
 p_load(kableExtra) # Tablas dentro de Rmarkdown
 p_load(skimr, # summary data
@@ -64,7 +65,7 @@ skim(db) %>% head()
 
 db$depto
 
-# Utilizando el diccionario, identificamos variables categóricas para volverlas a tipo factor
+# Utilizando el diccionario, identificamos variables categ?ricas para volverlas a tipo factor
 
 db <- db %>%
   mutate_at(.vars = c(
@@ -92,10 +93,10 @@ db <- db[, 2:ncol(db)]
 
 db_filtro <- subset(db, age >= 18 & ocu == 1)
 
-### Variables escogidas: Basados en ecuación de Mincer
+### Variables escogidas: Basados en ecuaci?n de Mincer
 # Hogar: directorio
-# Relación jefe del hogar: p6050
-# Factores de expansión: fex_c
+# Relaci?n jefe del hogar: p6050
+# Factores de expansi?n: fex_c
 # y ingreso: ingtotes (ingreso total imputado), ingtotob (ingreso total observado), ingtot (ingreso total)
 # 1. Escolaridad: p6210s1, p6210, maxEducLevel
 # 2. Experiencia: p6426
@@ -105,8 +106,8 @@ db_filtro <- subset(db, age >= 18 & ocu == 1)
 # 6. Estrato: estrato1
 # 7. Formal o Informal: formal, informal
 # 8. Area rural/urbano: clase
-# 9. Ocupación: oficio
-# 10.Tamaño de la empresa: sizeFirm
+# 9. Ocupaci?n: oficio
+# 10.Tama?o de la empresa: sizeFirm
 # 11.Segundo trabajo: p7040
 
 Base_var <- db_filtro %>% select(directorio, p6050, fex_c, ingtot, ocu, p6210s1, p6210, maxEducLevel, p6426, age, sex,  estrato1, formal, 
@@ -123,7 +124,7 @@ porcentaje_na <- cantidad_na/nrow(Base_var)
 
 # Porcentaje de observaciones faltantes. 
 p <- mean(porcentaje_na[,1])
-print(paste0("En promedio el ", round(p*100, 2), "% de las entradas están vacías"))
+print(paste0("En promedio el ", round(p*100, 2), "% de las entradas est?n vac?as"))
 
 # Ordenamos de mayor a menor
 porcentaje_na <- arrange(porcentaje_na, desc(cantidad_na))
