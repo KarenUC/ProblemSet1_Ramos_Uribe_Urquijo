@@ -1,21 +1,5 @@
 # Paula Ramos, Karen Uribe y Juan D. Urquijo
 # update: 12-06-2022
-## install pacman
-##install.packages("pacman")
-rm(list=ls())
-## llamar librerias de la sesion
-require(pacman)
-p_load(rio, # import/export data
-       tidyverse, # tidy-data
-       skimr, # summary data
-       caret)  # Classification And REgression Training
-
-
-## data adquisition
-library(tidyverse)
-library(rvest)
-Data1 <- read_html("https://ignaciomsarmiento.github.io/GEIH2018_sample/page1.html")
-
 
 ###----------------- Project Set 1----------###
 
@@ -24,13 +8,34 @@ rm(list = ls())
 
 ##### ---Cargar Librerías --- ###### 
 
-
 library(rvest)
 library(stringr)
 library(dplyr)
 library(RSelenium)
 library(Rcpp)
 
+require(pacman)
+
+# usar la función p_load de pacman para instalar/llamar las librerías de la clase
+
+p_load(rio) # Librería para importar datos 
+p_load(tidyverse) # Librería para limpiar datos
+p_load(e1071) # Tiene la función para calcular skewness
+p_load(EnvStats) # Transformación Box-Cox
+p_load(tidymodels) # Modelos ML
+p_load(ggplot2) # Librería para visualizar datos
+p_load(scales) # Formato de los ejes en las gráficas
+p_load(ggpubr) # Combinar gráficas
+p_load(knitr) # Tablas dentro de Rmarkdown
+p_load(kableExtra) # Tablas dentro de Rmarkdown
+p_load(skimr, # summary data
+       caret)  # Classification And REgression Training
+
+library(tidyverse)
+
+### ---- 1.1 General Instructions --- ###
+
+## 1. a) Data acquisition
 
 db= "https://ignaciomsarmiento.github.io/GEIH2018_sample/"
 
@@ -39,8 +44,6 @@ links <- read_html(db) %>%
   html_attr("href") %>% 
   grep("page",.,value=TRUE)
 
-
-
 links <- links[-c(1)] 
 
 urls <- links
@@ -48,5 +51,68 @@ base_url <- db
 final_urls <- paste0(base_url, urls)
 # inspect
 final_urls
+
+## 2. a) Data Cleaning
+
+# Importamos los datos y los asignamos a un objeto llamado db
+
+db <- import("https://gitlab.com/Lectures-R/bd-meca-2022-summer/lecture-01/-/raw/main/data/GEIH_sample1.Rds")
+
+# Inspeccionamos base de datos
+
+skim(db) %>% head()
+
+db$depto
+
+# Utilizando el diccionario, identificamos variables categóricas para volverlas a tipo factor
+
+db <- db %>%
+  mutate_at(.vars = c(
+    "cclasnr11", "cclasnr2", "cclasnr3", "cclasnr4", "cclasnr5",
+    "cclasnr6", "cclasnr7", "cclasnr8", "clase", "college",
+    "cotPension", "cuentaPropia", "depto", "directorio", "dominio",
+    "dsi", "estrato1", "formal", "ina", "inac", "informal",
+    "maxEducLevel", "p6050", "microEmpresa", "ocu", "oficio", 
+    "orden", "p6090", "p6100", "p6210", "p6210s1", "p6240", "p6510",
+    "p6510s2", "p6545", "p6545s2", "p6580", "p6580s2", "p6585s1",
+    "p6585s1a2", "p6585s2", "p6585s2a2", "p6585s4", "p6585s4a2",
+    "p6590", "p6610", "p6620", "p6630s1", "p6630s2", "p6630s3",
+    "p6630s4", "p6630s6", "p6920", "p7040", "p7050", "p7090",
+    "p7110", "p7120", "p7140s1", "p7140s2", "p7150", "p7160",
+    "p7310", "p7350", "p7422", "p7472", "p7495", "p7500s1",
+    "p7500s2", "p7500s3", "p7505", "p7510s1", "p7510s2",
+    "p7510s3", "p7510s5", "p7510s6", "p7510s7", "pea", "pet", 
+    "regSalud", "relab", "secuencia_p", "sex", "sizeFirm", "wap"),
+    .funs = factor)
+
+# Eliminamos la variable Var.1
+db <- db[, 2:ncol(db)]
+
+### Filtrado base
+
+db_filtro <- subset(db, age >= 18 | ocu == 1)
+
+
+### Variables escogidas: Basados en ecuación de Mincer
+# Factores de expansión: fex_c
+# y ingreso: ingtotes (ingreso total imputado), ingtotob (ingreso total observado), ingtot (ingreso total)
+# 1. Escolaridad: p6210s1, p6210, maxEducLevel
+# 2. Experiencia: p6426
+# 3. Edad: age
+# 4. Raza: No tenemos
+# 5. Sexo: sex
+# 6. Estrato: estrato1
+# 7. Formal o Informal: formal, informal
+# 8. Area rural/urbano: clase
+# 9. Ocupación: oficio
+# 10. Tamaño de la empresa: sizeFirm
+# 11. Segundo trabajo: p7040
+
+Base_var <- db_filtro %>% select(fex_c, ingtot, ingtotob, p6210s1, p6210, maxEducLevel, p6426, age, sex,  estrato1, formal, 
+                                 informal, clase, oficio, sizeFirm, p7040 )
+
+
+skim(Base_var)
+
 
 
