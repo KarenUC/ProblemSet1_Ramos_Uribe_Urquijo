@@ -211,5 +211,20 @@ b1<-model_income$coefficients[2]
 b2<-model_income$coefficients[3]
 edad_optima<--(b1/(2*b2))
 
-cor(Base_var$ingtot,Base_var$age)
+###--- 4. The earnings GAP
+#### Crear variable female
+Base_var = Base_var %>% 
+  mutate(female = ifelse(sex == 0,1,0))
+
+#Modelo
+Base_var$log_income<-log(Base_var$ingtot)
+Base_var$female<-as.factor(Base_var$female)
+model_income_female<-lm(log_income~female, data= Base_var)
+
+
+sum(is.na(Base_var$female))
+sum(is.na(Base_var$log_income))
+
+summ(model_income)
+stargazer(model_income, type = "text")
 
