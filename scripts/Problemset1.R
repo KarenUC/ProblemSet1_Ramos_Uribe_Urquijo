@@ -135,6 +135,47 @@ porcentaje_na <- rownames_to_column(porcentaje_na, "variable")
 
 ### --- Limpieza outliers --- ###
 
+### --- Imputar variables---###
+
+#Identificar cuantos ingresos son <=0
+ing_0 <- Base_var$ingtot==0
+
+sum(ing_0)
+
+##Crear promedio del ingreso
+Base_var = Base_var %>% 
+  group_by(directorio) %>% 
+  mutate(mean_ingtot = mean(ingtot))
+
+#Impute a ingresos totales iguales a 0 el promedio del ingreso del hogar
+Base_var = Base_var %>%
+  mutate(ingtot = ifelse(ingtot==0,
+                            yes = mean_ingtot,
+                            no = ingtot))
+
+#Validar que no queden 0 en ingreso después de imputar
+
+ing_0 <- Base_var$ingtot==0
+
+sum(ing_0)
+
+#Imputar restantes con la media total de la muestra
+
+#Crear media total
+
+mu<- mean(Base_var$ingtot)
+
+#Imputar información para observación sin miembros de hogar
+Base_var = Base_var %>%
+  mutate(ingtot = ifelse(ingtot==0,
+                         yes = mu,
+                         no = ingtot))
+
+#Nueva validación
+
+ing_0 <- Base_var$ingtot==0
+
+sum(ing_0)
 
 ### --- Estadisticas Descriptivas --- ###
 
@@ -220,6 +261,8 @@ Base_var = Base_var %>%
 Base_var$log_income<-log(Base_var$ingtot)
 Base_var$female<-as.factor(Base_var$female)
 model_income_female<-lm(log_income~female, data= Base_var)
+
+skim(Base_var$log_income)
 
 
 sum(is.na(Base_var$female))
