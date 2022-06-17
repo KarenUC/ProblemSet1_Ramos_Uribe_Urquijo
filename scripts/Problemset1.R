@@ -264,9 +264,3 @@ stargazer(model_income, type = "text")
 model_income1 <-lm(ingtot~age + age_2,data=subset(Base_var,female==1))
 model_income2 <-lm(ingtot~age + age_2,data=subset(Base_var,female==0))
 
-
-
-
-
-g3<-ggplot(Base_var, aes(x = age, y = prediccion1)) + geom_point()
-g4<-ggplot(Base_var, aes(x = age, y = prediccion2)) + geom_point()
