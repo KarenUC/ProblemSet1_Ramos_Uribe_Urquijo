@@ -110,8 +110,9 @@ db_filtro <- subset(db, age >= 18 & ocu == 1)
 # 10.Tama?o de la empresa: sizeFirm
 # 11.Segundo trabajo: p7040
 
-Base_var <- db_filtro %>% select(directorio, p6050, fex_c, ingtot, ocu, p6210s1, p6210, maxEducLevel, p6426, age, sex,  estrato1, formal, 
-                                 informal, clase, oficio, sizeFirm, p7040)
+Base_var <- db_filtro %>% select(directorio, p6050, fex_c, ingtot, ocu, p6210s1,
+                                 p6210, maxEducLevel, p6426, age, sex, estrato1,
+                                 formal, informal, clase, oficio, sizeFirm, p7040)
 skim(Base_var)
 
 ### --- Missing Values
@@ -132,6 +133,9 @@ porcentaje_na <- arrange(porcentaje_na, desc(cantidad_na))
 # Convertimos el nombre de la fila en columna
 porcentaje_na <- rownames_to_column(porcentaje_na, "variable")
 
+### --- Limpieza outliers --- ###
+
+
 ### --- Estadisticas Descriptivas --- ###
 
 library(stargazer)
@@ -150,7 +154,8 @@ box_plot <- ggplot(data=Base_var , mapping = aes(as.factor(estrato1) , ingtot)) 
 
 box_plot <- box_plot +
   geom_point(aes(colour=as.factor(sex))) +
-  scale_color_manual(values = c("0"="red" , "1"="blue") , label = c("0"="Hombre" , "1"="Mujer") , 
+  scale_color_manual(values = c("0"="red" , "1"="blue") ,
+                     label = c("0"="Hombre" , "1"="Mujer") , 
                      name = "Sexo")
 box_plot
 
@@ -158,17 +163,52 @@ box_plot
 
 
 graph2 <- ggplot(data = Base_var , 
-                 mapping = aes(x = age , y = ingtot , group=as.factor(formal) , color=as.factor(formal))) +
-  geom_point()
+                 mapping = aes(x = age , y = ingtot , group=as.factor(formal)
+                               , color=as.factor(formal))) +
+geom_point()
 
 graph2
 
 
 ###--- 3. Age-earnings profile
+## Escoger variable para salario
+# Se escoge la variable ingresos totales después de revisar la base, dado que 
+#es la suma del ingreso total + el ingreso imputado (ingresos adicionales)
 
 library(jtools)
-## Model 
+##  OLS Age-earnings model
 Base_var$age_2 <- sqrt(Base_var$age)
 model_income<-lm(ingtot~age + age_2, 
                  data= Base_var)
 summ(model_income)
+stargazer(model_income, type = "text")
+### Qué tan bueno el el fit del moelo?
+#El fit es malo según Rcuadrado - Revisar argumento
+#Plot the predicted age-earnings profile implied by the above equation.
+Base_var$prediccion1<-predict(model_income)
+
+########
+#Correlación entre predicción y valor observado
+cor(Base_var$ingtot,Base_var$prediccion1)
+ggplot(Base_var, aes(x = prediccion1, y = ingtot)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, color = "green")
+
+g1<-ggplot(Base_var, aes(x = age, y = ingtot)) + geom_point()
+g2<-ggplot(Base_var, aes(x = age, y = prediccion1)) + geom_point()
+
+ggarrange(g1, g2, nrow = 1, ncol = 2)
+
+
+
+
+
+###############
+#What is the \peak age" suggested by the above equation? Use bootstrap to
+#calculate the standard errors and construct the conFIdence intervals.
+
+
+p_load(boot)
+boot(Base_var,sta)
+
+
