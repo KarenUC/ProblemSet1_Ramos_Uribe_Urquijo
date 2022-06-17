@@ -177,7 +177,7 @@ graph2
 
 library(jtools)
 ##  OLS Age-earnings model
-Base_var$age_2 <- sqrt(Base_var$age)
+Base_var$age_2 <- (Base_var$age)^2
 model_income<-lm(ingtot~age + age_2, 
                  data= Base_var)
 summ(model_income)
@@ -199,16 +199,17 @@ g2<-ggplot(Base_var, aes(x = age, y = prediccion1)) + geom_point()
 
 ggarrange(g1, g2, nrow = 1, ncol = 2)
 
-
-
-
-
-###############
-#What is the \peak age" suggested by the above equation? Use bootstrap to
-#calculate the standard errors and construct the conFIdence intervals.
-
-
+#### Encontrar medida de incertidumbre
 p_load(boot)
-boot(Base_var,sta)
+R<-1000
+fun<-function(Base_var,index){
+  coef(lm(ingtot~age + age_2, data= Base_var, subset = index))
+  }
+boot(Base_var, fun, R)
+## Edad optima
+b1<-model_income$coefficients[2]
+b2<-model_income$coefficients[3]
+edad_optima<--(b1/(2*b2))
 
+cor(Base_var$ingtot,Base_var$age)
 
