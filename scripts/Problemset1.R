@@ -9,12 +9,6 @@ rm(list = ls())
 
 ##### ---Cargar Librer?as --- ###### 
 
-library(rvest)
-library(stringr)
-library(dplyr)
-library(RSelenium)
-library(Rcpp)
-
 require(pacman)
 
 # usar la funci?n p_load de pacman para instalar/llamar las librer?as de la clase
@@ -30,7 +24,12 @@ p_load(ggpubr) # Combinar gr?ficas
 p_load(knitr) # Tablas dentro de Rmarkdown
 p_load(kableExtra) # Tablas dentro de Rmarkdown
 p_load(skimr, # summary data
-       caret)  # Classification And REgression Training
+       caret, # Classification And REgression Training
+       rvest,
+       stringr,
+       dplyr,
+       RSelenium,
+       Rcpp)
 
 library(tidyverse)
 
@@ -139,7 +138,6 @@ porcentaje_na <- rownames_to_column(porcentaje_na, "variable")
 
 #Identificar cuantos ingresos son <=0
 ing_0 <- Base_var$ingtot==0
-
 sum(ing_0)
 
 ##Crear promedio del ingreso
@@ -153,32 +151,27 @@ Base_var = Base_var %>%
                             yes = mean_ingtot,
                             no = ingtot))
 
-#Validar que no queden 0 en ingreso después de imputar
-
+#Validar que no queden 0 en ingreso despu?s de imputar
 ing_0 <- Base_var$ingtot==0
-
 sum(ing_0)
 
 #Imputar restantes con la media total de la muestra
 
 #Crear media total
-
 mu<- mean(Base_var$ingtot)
 
-#Imputar información para observación sin miembros de hogar
+#Imputar informaci?n para observaci?n sin miembros de hogar
 Base_var = Base_var %>%
   mutate(ingtot = ifelse(ingtot==0,
                          yes = mu,
                          no = ingtot))
 
-#Nueva validación
+#Nueva validaci?n
 
 ing_0 <- Base_var$ingtot==0
-
 sum(ing_0)
 
 ### --- Estadisticas Descriptivas --- ###
-
 library(stargazer)
 
 stargazer(Base_var)
@@ -201,7 +194,6 @@ box_plot <- box_plot +
 box_plot
 
 # Densidad Ingresos por formal, informal 
-
 
 graph2 <- ggplot(data = Base_var , 
                  mapping = aes(x = age , y = ingtot , group=as.factor(formal)
@@ -240,7 +232,7 @@ g2<-ggplot(Base_var, aes(x = age, y = prediccion1)) + geom_point()
 
 ggarrange(g1, g2, nrow = 1, ncol = 2)
 
-#### Encontrar medida de incertidumbre
+#### Encontrar medida de incertidumbre para los coeficientes del modelo
 p_load(boot)
 R<-1000
 fun<-function(Base_var,index){
@@ -251,23 +243,30 @@ boot(Base_var, fun, R)
 b1<-model_income$coefficients[2]
 b2<-model_income$coefficients[3]
 edad_optima<--(b1/(2*b2))
+edad_optima ##56
 
 ###--- 4. The earnings GAP
 #### Crear variable female
 Base_var = Base_var %>% 
   mutate(female = ifelse(sex == 0,1,0))
 
-#Modelo
+#Modelo income female
+
 Base_var$log_income<-log(Base_var$ingtot)
 Base_var$female<-as.factor(Base_var$female)
-model_income_female<-lm(log_income~female, data= Base_var)
-
 skim(Base_var$log_income)
 
+model_income_female<-lm(log_income~female, data= Base_var)
 
-sum(is.na(Base_var$female))
-sum(is.na(Base_var$log_income))
-
-summ(model_income)
 stargazer(model_income, type = "text")
 
+##Estimate and plot the predicted age-earnings profile by gender
+model_income1 <-lm(ingtot~age + age_2,data=subset(Base_var,female==1))
+model_income2 <-lm(ingtot~age + age_2,data=subset(Base_var,female==0))
+
+
+
+
+
+g3<-ggplot(Base_var, aes(x = age, y = prediccion1)) + geom_point()
+g4<-ggplot(Base_var, aes(x = age, y = prediccion2)) + geom_point()
