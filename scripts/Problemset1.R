@@ -260,7 +260,9 @@ model_income_female<-lm(log_income~female, data= Base_var)
 
 stargazer(model_income, type = "text")
 
-##Estimate and plot the predicted age-earnings profile by gender
+##Estimar y graficar the predicted age-earnings profile by gender
 model_income1 <-lm(ingtot~age + age_2,data=subset(Base_var,female==1))
+summary(model_income1)
 model_income2 <-lm(ingtot~age + age_2,data=subset(Base_var,female==0))
-
+summary(model_income2)
+stargazer(model_income1, model_income2, type = "text") ##los coeficientes son diferentes para hombres y mujeres
