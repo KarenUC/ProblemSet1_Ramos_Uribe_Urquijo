@@ -6,6 +6,8 @@
 
 rm(list = ls())
 
+setwd("C:/Users/kurib/OneDrive - Universidad de los Andes/Documentos/MECA/Github/ProblemSet1_Ramos_Uribe_Urquijo")
+
 ##### ---Cargar Librer?as --- ###### 
 
 require(pacman)
@@ -36,20 +38,19 @@ library(tidyverse)
 
 ## 1. a) Data acquisition
 
-db= "https://ignaciomsarmiento.github.io/GEIH2018_sample/"
+geih <- data.frame()
+  for (i in 1:10){
+    i = 1
+    url <-paste0("https:/https://ignaciomsarmiento.github.io/GEIH2018_sample/pages/geih_page_",i, ".html")
+    temp <- read_html(url) %>%
+      html_table()
+    geih <- rbind(geih, temp)
+  }
+  
 
-links <- read_html(db) %>% 
-  html_nodes("a") %>% 
-  html_attr("href") %>% 
-  grep("page",.,value=TRUE)
 
-links <- links[-c(1)] 
 
-urls <- links
-base_url <- db
-final_urls <- paste0(base_url, urls)
-# inspect
-final_urls
+
 
 ### --- 2. a) Data Cleaning --- ###
 
@@ -319,7 +320,6 @@ sum(is.na(Base_var$log_income))
 
 summ(model_income)
 stargazer(model_income_female, type = "text")
-
 
 
 ##Estimar y graficar the predicted age-earnings profile by gender
