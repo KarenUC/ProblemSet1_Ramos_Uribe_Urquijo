@@ -298,44 +298,116 @@ fun2<-function(Base_var,index){
 boot(Base_var, fun, R)
 ## Edad optima
 b1_boxcox<-model_income_boxcox$coefficients[2]
+model_income$
 b2_boxcox<-model_income_boxcox$coefficients[3]
 edad_optima_boxcox<--(b1_boxcox/(2*b2_boxcox))
 
 edad_optima
 edad_optima_boxcox
 
-###--- 4. The earnings GAP
-#### Crear variable female
+#Intervalos de confianza
+CI_age<-confint(model_income, level=0.95)
+CI_age_boxcox<-confint(model_income_boxcox, level=0.95)
+
+CI_age
+CI_age_boxcox
+
+###--- 4. The earnings GAP ---###########
+#### Crear variable female y log income
 Base_var = Base_var %>% 
   mutate(female = ifelse(sex == 0,1,0))
-
-#Modelo income female
 
 Base_var$log_income<-log(Base_var$ingtot)
 Base_var$female<-as.factor(Base_var$female)
 skim(Base_var$log_income)
 
-model_income_female<-lm(log_income~female, data= Base_var)
-
+#Validar es si hay NAS
 sum(is.na(Base_var$female))
 sum(is.na(Base_var$log_income))
 
-summ(model_income)
+#Modelo unconditional earnings gap
+model_income_female<-lm(log_income~female, data= Base_var)
+summ(model_income_female)
 stargazer(model_income_female, type = "text")
+##Qué tan bueno es el modelo? Interpretación del R2
 
 
 ##Estimar y graficar the predicted age-earnings profile by gender
-model_income1 <-lm(ingtot~age + age_2,data=subset(Base_var,female==1))
-summary(model_income1)
-model_income2 <-lm(ingtot~age + age_2,data=subset(Base_var,female==0))
-summary(model_income2)
-stargazer(model_income1, model_income2, type = "text") ##los coeficientes son diferentes para hombres y mujeres
+model_income_age_female <-lm(log_income~age + age_2,data=subset(Base_var,female==1))
+summary(model_income1_female)
+
+model_income_age_male <-lm(log_income~age + age_2,data=subset(Base_var,female==0))
+summary(model_income2_male)
+
+stargazer(model_income_age_female, model_income_age_male, type = "text") 
+##los coeficientes son diferentes para hombres y mujeres; pero el intercepto es muy parecido
+
+#### Encontrar medida de incertidumbre para los coeficientes del modelo
+R<-1000
+fun_female<-function(Base_var,index){
+  coef(lm(log_income~age + age_2,data=subset(Base_var,female==1), subset = index))
+}
+boot(Base_var, fun_female, R)
+## Edad optima
+b1_female<-model_income_age_female$coefficients[2]
+b2_female<-model_income_age_female$coefficients[3]
+edad_optima_female<--(b1_female/(2*b2_female))
+edad_optima_female ##40
+
+fun_male<-function(Base_var,index){
+  coef(lm(log_income~age + age_2,data=subset(Base_var,female==0), subset = index))
+}
+boot(Base_var, fun_male, R)
+## Edad optima
+b1_male<-model_income_age_male$coefficients[2]
+b2_male<-model_income_age_male$coefficients[3]
+edad_optima_male<--(b1_male/(2*b2_male))
+edad_optima_male ##46
+
+#Intervalos de confianza
+CI_age_female<-confint(model_income_age_female, level=0.95)
+CI_age_male<-confint(model_income_age_male, level=0.95)
+
+CI_age_female
+CI_age_male
+
+ci2 <- confint(model_income_age_female, level = 0.95)[2, ] 
+est2 <- data.frame(est = coef(model_income_age_female)[2],
+                   lower_bound = ci2[1],
+                   upper_bound = ci2[2], 
+                   model = "Prueba")         
+est <- rbind( est2)
+
+
+##Calculo de predicciones
+Base_var$p_female1<-0
+
+  predict(model_income_age_female)
+
+sum(is.na(Base_var$p_female))
+  predict(model_income_age_female)
+
+
+[!is.na(db$ingtotes)]
+
+is
+p_male<-predict(model_income_age_male)
+prueba<-rbind(p_female,p_male)
+sum(is.na(Base_var$p_female))
+
+
+df %>% 
+  mutate(date = ifelse(is.na(date), 0, date))
+
+#Graficar predicciones para hombre y para mujer
+
+g_female<-ggplot(Base_var, aes(x = age, y = prediccion_female)) + geom_point()
+g_male<-ggplot(Base_var, aes(x = age, y = prediccion_male)) + geom_point()
+ggarrange(g1, g_female, g_male, nrow = 1, ncol = 3)
 
 
 
 
 #### ----- 5.Predicting Earnigns 
-
-
 
 
