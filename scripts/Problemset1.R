@@ -8,12 +8,6 @@ rm(list = ls())
 
 ##### ---Cargar Librer?as --- ###### 
 
-library(rvest)
-library(stringr)
-library(dplyr)
-library(RSelenium)
-library(Rcpp)
-
 require(pacman)
 
 # usar la funci?n p_load de pacman para instalar/llamar las librer?as de la clase
@@ -29,7 +23,12 @@ p_load(ggpubr) # Combinar gr?ficas
 p_load(knitr) # Tablas dentro de Rmarkdown
 p_load(kableExtra) # Tablas dentro de Rmarkdown
 p_load(skimr, # summary data
-       caret)  # Classification And REgression Training
+       caret, # Classification And REgression Training
+       rvest,
+       stringr,
+       dplyr,
+       RSelenium,
+       Rcpp)
 
 library(tidyverse)
 
@@ -136,7 +135,6 @@ porcentaje_na <- rownames_to_column(porcentaje_na, "variable")
 
 #Identificar cuantos ingresos son <=0
 ing_0 <- Base_var$ingtot==0
-
 sum(ing_0)
 
 ##Crear promedio del ingreso
@@ -151,15 +149,16 @@ Base_var = Base_var %>%
                             no = ingtot))
 
 #Validar que no queden 0 en ingreso despu?s de imputar
+<<<<<<< HEAD
 
+=======
+>>>>>>> a3523ce524b7eaad4c3ccdc531b22d86a8753732
 ing_0 <- Base_var$ingtot==0
-
 sum(ing_0)
 
 #Imputar restantes con la media total de la muestra
 
 #Crear media total
-
 mu<- mean(Base_var$ingtot)
 
 #Imputar informaci?n para observaci?n sin miembros de hogar
@@ -171,7 +170,6 @@ Base_var = Base_var %>%
 #Nueva validaci?n
 
 ing_0 <- Base_var$ingtot==0
-
 sum(ing_0)
 
 ### --- Limpieza outliers --- ###
@@ -190,7 +188,6 @@ hist_ingtot_boxcox<-ggplot()+
 ggarrange(hist_ingtot, hist_ingtot_boxcox, nrow = 1, ncol = 2)
 
 ### --- Estadisticas Descriptivas --- ###
-
 library(stargazer)
 
 stargazer(Base_var)
@@ -223,7 +220,6 @@ box_plot_boxcox <- box_plot_boxcox +
 box_plot_boxcox
 
 # Densidad Ingresos por formal, informal 
-
 
 graph2 <- ggplot(data = Base_var , 
                  mapping = aes(x = age , y = ingtot , group=as.factor(formal)
@@ -283,7 +279,7 @@ g2_boxcox<-ggplot(Base_var, aes(x = age, y = prediccion1_boxcox)) + geom_point()
 
 ggarrange(g1, g2, g2_boxcox, nrow = 1, ncol = 3)
 
-#### Encontrar medida de incertidumbre
+#### Encontrar medida de incertidumbre para los coeficientes del modelo
 p_load(boot)
 R<-1000
 fun<-function(Base_var,index){
@@ -294,6 +290,7 @@ boot(Base_var, fun, R)
 b1<-model_income$coefficients[2]
 b2<-model_income$coefficients[3]
 edad_optima<--(b1/(2*b2))
+edad_optima ##56
 
 fun2<-function(Base_var,index){
   coef(lm(ingtot_boxcox~age + age_2, data= Base_var, subset = index))
@@ -312,17 +309,27 @@ edad_optima_boxcox
 Base_var = Base_var %>% 
   mutate(female = ifelse(sex == 0,1,0))
 
-#Modelo
+#Modelo income female
+
 Base_var$log_income<-log(Base_var$ingtot)
 Base_var$female<-as.factor(Base_var$female)
-model_income_female<-lm(log_income~female, data= Base_var)
-
 skim(Base_var$log_income)
 
+model_income_female<-lm(log_income~female, data= Base_var)
 
+<<<<<<< HEAD
 sum(is.na(Base_var$female))
 sum(is.na(Base_var$log_income))
 
 summ(model_income)
 stargazer(model_income_female, type = "text")
+=======
+stargazer(model_income, type = "text")
+>>>>>>> a3523ce524b7eaad4c3ccdc531b22d86a8753732
 
+##Estimar y graficar the predicted age-earnings profile by gender
+model_income1 <-lm(ingtot~age + age_2,data=subset(Base_var,female==1))
+summary(model_income1)
+model_income2 <-lm(ingtot~age + age_2,data=subset(Base_var,female==0))
+summary(model_income2)
+stargazer(model_income1, model_income2, type = "text") ##los coeficientes son diferentes para hombres y mujeres
