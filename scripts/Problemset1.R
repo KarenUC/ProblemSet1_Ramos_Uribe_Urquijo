@@ -149,10 +149,7 @@ Base_var = Base_var %>%
                             no = ingtot))
 
 #Validar que no queden 0 en ingreso despu?s de imputar
-<<<<<<< HEAD
 
-=======
->>>>>>> a3523ce524b7eaad4c3ccdc531b22d86a8753732
 ing_0 <- Base_var$ingtot==0
 sum(ing_0)
 
@@ -317,15 +314,13 @@ skim(Base_var$log_income)
 
 model_income_female<-lm(log_income~female, data= Base_var)
 
-<<<<<<< HEAD
 sum(is.na(Base_var$female))
 sum(is.na(Base_var$log_income))
 
 summ(model_income)
 stargazer(model_income_female, type = "text")
-=======
-stargazer(model_income, type = "text")
->>>>>>> a3523ce524b7eaad4c3ccdc531b22d86a8753732
+
+
 
 ##Estimar y graficar the predicted age-earnings profile by gender
 model_income1 <-lm(ingtot~age + age_2,data=subset(Base_var,female==1))
