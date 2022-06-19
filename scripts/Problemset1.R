@@ -1,6 +1,5 @@
 # Paula Ramos, Karen Uribe y Juan D. Urquijo
-# update: 15-06-2022
-#hello###
+# update: 18-06-2022
 ###----------------- Project Set 1----------###
 
 ##### ---Limpiar Ambiente --- ###### gncbnnb
@@ -133,8 +132,6 @@ porcentaje_na <- arrange(porcentaje_na, desc(cantidad_na))
 # Convertimos el nombre de la fila en columna
 porcentaje_na <- rownames_to_column(porcentaje_na, "variable")
 
-### --- Limpieza outliers --- ###
-
 ### --- Imputar variables---###
 
 #Identificar cuantos ingresos son <=0
@@ -153,7 +150,7 @@ Base_var = Base_var %>%
                             yes = mean_ingtot,
                             no = ingtot))
 
-#Validar que no queden 0 en ingreso despu閟 de imputar
+#Validar que no queden 0 en ingreso despu?s de imputar
 
 ing_0 <- Base_var$ingtot==0
 
@@ -165,17 +162,32 @@ sum(ing_0)
 
 mu<- mean(Base_var$ingtot)
 
-#Imputar informaci髇 para observaci髇 sin miembros de hogar
+#Imputar informaci?n para observaci?n sin miembros de hogar
 Base_var = Base_var %>%
   mutate(ingtot = ifelse(ingtot==0,
                          yes = mu,
                          no = ingtot))
 
-#Nueva validaci髇
+#Nueva validaci?n
 
 ing_0 <- Base_var$ingtot==0
 
 sum(ing_0)
+
+### --- Limpieza outliers --- ###
+
+x<-Base_var$ingtot
+lambda<-boxcox(x, objective.name = "Log-Likelihood", optimize = T)$lambda
+#Transformamos la variable
+Base_var$ingtot_boxcox<-boxcoxTransform(x, lambda)
+
+hist_ingtot<-ggplot()+
+  geom_histogram(aes(x = Base_var$ingtot), fill = "darkgreen", alpha = 0.3)
+
+hist_ingtot_boxcox<-ggplot()+
+  geom_histogram(aes(x = Base_var$ingtot_boxcox), fill = "darkblue", alpha = 0.3)
+
+ggarrange(hist_ingtot, hist_ingtot_boxcox, nrow = 1, ncol = 2)
 
 ### --- Estadisticas Descriptivas --- ###
 
@@ -200,6 +212,16 @@ box_plot <- box_plot +
                      name = "Sexo")
 box_plot
 
+box_plot_boxcox<- ggplot(data=Base_var , mapping = aes(as.factor(estrato1) , ingtot_boxcox)) + 
+  geom_boxplot()
+
+box_plot_boxcox <- box_plot_boxcox +
+  geom_point(aes(colour=as.factor(sex))) +
+  scale_color_manual(values = c("0"="red" , "1"="blue") ,
+                     label = c("0"="Hombre" , "1"="Mujer") , 
+                     name = "Sexo")
+box_plot_boxcox
+
 # Densidad Ingresos por formal, informal 
 
 
@@ -210,6 +232,12 @@ geom_point()
 
 graph2
 
+graph2_boxcox<- ggplot(data = Base_var , 
+                 mapping = aes(x = age , y = ingtot_boxcox , group=as.factor(formal)
+                               , color=as.factor(formal))) +
+  geom_point()
+
+graph2_boxcox
 
 ###--- 3. Age-earnings profile
 ## Escoger variable para salario
@@ -217,16 +245,25 @@ graph2
 #es la suma del ingreso total + el ingreso imputado (ingresos adicionales)
 
 library(jtools)
-##  OLS Age-earnings model
+##  OLS Age-earnings model - sin transformaci贸n
 Base_var$age_2 <- (Base_var$age)^2
 model_income<-lm(ingtot~age + age_2, 
                  data= Base_var)
 summ(model_income)
-stargazer(model_income, type = "text")
-### Qu茅 tan bueno el el fit del moelo?
+
+##  OLS Age-earnings model - Con trasformaci贸n boxcox
+model_income_boxcox<-lm(ingtot_boxcox~age + age_2, 
+                 data= Base_var)
+summ(model_income_boxcox)
+
+#Comparar modelos
+stargazer(model_income, model_income_boxcox, type = "text")
+
+### Qu茅 tan bueno es el fit del modelo?
 #El fit es malo seg煤n Rcuadrado - Revisar argumento
 #Plot the predicted age-earnings profile implied by the above equation.
 Base_var$prediccion1<-predict(model_income)
+Base_var$prediccion1_boxcox<-predict(model_income_boxcox)
 
 ########
 #Correlaci贸n entre predicci贸n y valor observado
@@ -238,7 +275,13 @@ ggplot(Base_var, aes(x = prediccion1, y = ingtot)) +
 g1<-ggplot(Base_var, aes(x = age, y = ingtot)) + geom_point()
 g2<-ggplot(Base_var, aes(x = age, y = prediccion1)) + geom_point()
 
-ggarrange(g1, g2, nrow = 1, ncol = 2)
+cor(Base_var$ingtot_boxcox,Base_var$prediccion1_boxcox)
+ggplot(Base_var, aes(x = prediccion1, y = ingtot_boxcox)) +
+  geom_point() + geom_abline(intercept = 0, slope = 1, color = "blue")
+
+g2_boxcox<-ggplot(Base_var, aes(x = age, y = prediccion1_boxcox)) + geom_point()
+
+ggarrange(g1, g2, g2_boxcox, nrow = 1, ncol = 3)
 
 #### Encontrar medida de incertidumbre
 p_load(boot)
@@ -251,6 +294,18 @@ boot(Base_var, fun, R)
 b1<-model_income$coefficients[2]
 b2<-model_income$coefficients[3]
 edad_optima<--(b1/(2*b2))
+
+fun2<-function(Base_var,index){
+  coef(lm(ingtot_boxcox~age + age_2, data= Base_var, subset = index))
+}
+boot(Base_var, fun, R)
+## Edad optima
+b1_boxcox<-model_income_boxcox$coefficients[2]
+b2_boxcox<-model_income_boxcox$coefficients[3]
+edad_optima_boxcox<--(b1_boxcox/(2*b2_boxcox))
+
+edad_optima
+edad_optima_boxcox
 
 ###--- 4. The earnings GAP
 #### Crear variable female
@@ -269,5 +324,5 @@ sum(is.na(Base_var$female))
 sum(is.na(Base_var$log_income))
 
 summ(model_income)
-stargazer(model_income, type = "text")
+stargazer(model_income_female, type = "text")
 
