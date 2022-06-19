@@ -6,8 +6,6 @@
 
 rm(list = ls())
 
-setwd("C:/Users/kurib/OneDrive - Universidad de los Andes/Documentos/MECA/Github/ProblemSet1_Ramos_Uribe_Urquijo")
-
 ##### ---Cargar Librer?as --- ###### 
 
 require(pacman)
@@ -382,22 +380,7 @@ est <- rbind( est2)
 ##Calculo de predicciones
 Base_var$p_female1<-0
 
-  predict(model_income_age_female)
-
-sum(is.na(Base_var$p_female))
-  predict(model_income_age_female)
-
-
-[!is.na(db$ingtotes)]
-
-is
-p_male<-predict(model_income_age_male)
-prueba<-rbind(p_female,p_male)
-sum(is.na(Base_var$p_female))
-
-
-df %>% 
-  mutate(date = ifelse(is.na(date), 0, date))
+Base_var$predict_gender<-ifelse(Base_var$female==1, predict(model_income_age_female), predict(model_income_age_male))
 
 #Graficar predicciones para hombre y para mujer
 
