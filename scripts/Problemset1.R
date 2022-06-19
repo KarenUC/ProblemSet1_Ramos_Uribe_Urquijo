@@ -41,22 +41,24 @@ library(tidyverse)
 geih <- data.frame()
   for (i in 1:10){
     i = 1
-    url <-paste0("https:/https://ignaciomsarmiento.github.io/GEIH2018_sample/pages/geih_page_",i, ".html")
+    url <-paste0("https://ignaciomsarmiento.github.io/GEIH2018_sample/pages/geih_page_",i, ".html")
     temp <- read_html(url) %>%
       html_table()
     geih <- rbind(geih, temp)
   }
   
 
-
-
-
-
 ### --- 2. a) Data Cleaning --- ###
 
-# Importamos los datos y los asignamos a un objeto llamado db
+# Importamos los datos de otra fuente para validar que sean los mismos y los asignamos a un objeto llamado db
 
-db <- import("https://gitlab.com/Lectures-R/bd-meca-2022-summer/lecture-01/-/raw/main/data/GEIH_sample1.Rds")
+x <- import("https://gitlab.com/Lectures-R/bd-meca-2022-summer/lecture-01/-/raw/main/data/GEIH_sample1.Rds")
+
+# RTA: Se encuentra que son iguales
+
+# Se toma la base que se hizo web scrapping
+
+db <- geih
 
 # Inspeccionamos base de datos
 
@@ -328,3 +330,12 @@ summary(model_income1)
 model_income2 <-lm(ingtot~age + age_2,data=subset(Base_var,female==0))
 summary(model_income2)
 stargazer(model_income1, model_income2, type = "text") ##los coeficientes son diferentes para hombres y mujeres
+
+
+
+
+#### ----- 5.Predicting Earnigns 
+
+
+
+
