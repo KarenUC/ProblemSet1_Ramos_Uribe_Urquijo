@@ -192,12 +192,14 @@ hist_ingtot_boxcox<-ggplot()+
 ggarrange(hist_ingtot, hist_ingtot_boxcox, nrow = 1, ncol = 2)
 
 ### --- Estadisticas Descriptivas --- ###
+
 library(stargazer)
 
-stargazer(Base_var)
+graph_base <- as.data.frame(Base_var)
 
-skim(Base_var)  %>% 
-  yank("factor")
+stargazer(graph_base[c("ingtot", "age", "p6426" )], type="text", flip = TRUE, digits = 0)
+stargazer(graph_base[c("ingtot", "age", "p6426" )], type="latex", flip = TRUE, digits = 0)
+
 
 # Graficas
 
