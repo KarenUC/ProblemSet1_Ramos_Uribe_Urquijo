@@ -399,9 +399,12 @@ y_controles<-lm(log_income~ formal + age + age_2 + estrato1
                    + maxEducLevel + p6426 + oficio, data= Base_var)
 summ(y_controles)
 
-class(Base_var$female)
+Base_var = Base_var %>% 
+  mutate(femalenum = ifelse(sex == 0,1,0))
 
-female_controles<-lm(female~ formal + age + age_2 + estrato1 
+class(Base_var$femalenum)
+
+female_controles<-lm(femalenum~ formal + age + age_2 + estrato1 
                     + maxEducLevel + p6426 + oficio, data= Base_var)
 summ(female_controles)
 
@@ -411,9 +414,9 @@ Base_var$res_f= female_controles$residuals
 reg_final<-lm(res_y~ res_f, data=Base_var)
 summ(reg_final)
 
-stargazer(mod_income_without_f,model_female_controls, reg_final, type = "text")
+stargazer(model_controls, reg_final, type = "text")
 
-
+###Falta la interpretación!!!!!
 
 #### ----- 5.Predicting Earnigns 
 
