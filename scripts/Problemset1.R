@@ -369,14 +369,6 @@ CI_age_male<-confint(model_income_age_male, level=0.95)
 CI_age_female
 CI_age_male
 
-#ci2 <- confint(model_income_age_female, level = 0.95)[2, ] 
-#est2 <- data.frame(est = coef(model_income_age_female)[2],
-#                   lower_bound = ci2[1],
-#                   upper_bound = ci2[2], 
-#                   model = "Prueba")         
-#est <- rbind( est2)
-
-
 ##Calculo de predicciones
 Base_var$predict_gender<-ifelse(Base_var$female==1, predict(model_income_age_female), predict(model_income_age_male))
 
@@ -391,6 +383,13 @@ g_male_p<-ggplot(Base_gender_male, aes(x = age, y = male_pred)) + geom_point()
 
 ggarrange(g1, g_female_p, g_male_p, nrow = 1, ncol = 3)
 
+####----Equal Pay for Equal Work?-----###
+#Modelo unconditional earnings gap con controles
+Base_var$p6426_2 <- (Base_var$p6426)^2
+model_controls<-lm(log_income~female + 
+                          formal + age + age_2 + estrato1 + maxEducLevel + p6426 + , data= Base_var)
+summ(model_income_female)
+stargazer(model_income_female, type = "text")
 
 
 #### ----- 5.Predicting Earnigns 
