@@ -378,15 +378,20 @@ est <- rbind( est2)
 
 
 ##Calculo de predicciones
-Base_var$p_female1<-0
-
 Base_var$predict_gender<-ifelse(Base_var$female==1, predict(model_income_age_female), predict(model_income_age_male))
 
 #Graficar predicciones para hombre y para mujer
 
-g_female<-ggplot(Base_var, aes(x = age, y = prediccion_female)) + geom_point()
-g_male<-ggplot(Base_var, aes(x = age, y = prediccion_male)) + geom_point()
-ggarrange(g1, g_female, g_male, nrow = 1, ncol = 3)
+g_female<-ggplot(subset(Base_var, female==1), aes(x = age, y = ingtot)) + geom_point()
+g_male<-ggplot(subset(Base_var, female==0), aes(x = age, y = ingtot)) + geom_point()
+g_all<-ggplot(Base_var, aes(x = age, y = ingtot)) + geom_point()
+
+g_female_p<-ggplot(subset(Base_var, female==1), aes(x = age, y = predict_gender)) + geom_point()
+g_male_p<-ggplot(subset(Base_var, female==0), aes(x = age, y = predict_gender)) + geom_point()
+
+
+
+ggarrange(g_all, g_female, g_male, nrow = 1, ncol = 3)
 
 
 
