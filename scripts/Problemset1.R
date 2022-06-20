@@ -31,6 +31,7 @@ p_load(skimr, # summary data
        Rcpp)
 
 library(tidyverse)
+library(robotstxt)
 
 ### ---- 1.1 General Instructions --- ###
 
@@ -38,13 +39,18 @@ library(tidyverse)
 
 geih <- data.frame()
   for (i in 1:10){
-    i = 1
-    url <-paste0("https://ignaciomsarmiento.github.io/GEIH2018_sample/pages/geih_page_",i, ".html")
+      url <-paste0("https://ignaciomsarmiento.github.io/GEIH2018_sample/pages/geih_page_",i, ".html")
     temp <- read_html(url) %>%
       html_table()
     geih <- rbind(geih, temp)
   }
   
+
+###validar restricciones en los datos con robots.txt
+
+browseURL("https://ignaciomsarmiento.github.io/GEIH2018_sample/robots.txt")
+
+#No existe robots.txt por tanto no hay restricciones para scrappear
 
 ### --- 2. a) Data Cleaning --- ###
 
@@ -64,7 +70,7 @@ skim(db) %>% head()
 
 db$depto
 
-# Utilizando el diccionario, identificamos variables categ?ricas para volverlas a tipo factor
+# Utilizando el diccionario, identificamos variables categoricas para volverlas a tipo factor
 
 db <- db %>%
   mutate_at(.vars = c(
@@ -85,10 +91,10 @@ db <- db %>%
     "regSalud", "relab", "secuencia_p", "sex", "sizeFirm", "wap"),
     .funs = factor)
 
-# Eliminamos la variable Var.1
+# Eliminamos la variable Var.1 que solo corresponde al numero de filas
 db <- db[, 2:ncol(db)]
 
-### --- Filtrado base
+### --- Filtrado base para mayores de 18 y ocupados
 
 db_filtro <- subset(db, age >= 18 & ocu == 1)
 
@@ -165,7 +171,7 @@ Base_var = Base_var %>%
                          yes = mu,
                          no = ingtot))
 
-#Nueva validaci?n
+#Nueva validacion
 
 ing_0 <- Base_var$ingtot==0
 sum(ing_0)
