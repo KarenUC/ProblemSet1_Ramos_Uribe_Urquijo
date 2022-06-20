@@ -385,12 +385,34 @@ ggarrange(g1, g_female_p, g_male_p, nrow = 1, ncol = 3)
 
 ####----Equal Pay for Equal Work?-----###
 #Modelo unconditional earnings gap con controles
-Base_var$p6426_2 <- (Base_var$p6426)^2
 model_controls<-lm(log_income~female + 
                           formal + age + age_2 + estrato1 
                    + maxEducLevel + p6426 + oficio, data= Base_var)
-skim(Base_var$p6426)
+summ(model_controls)
 stargazer(model_controls, type = "text")
+
+##Teorema FWL
+
+##Estimación del modelo con los residuales
+#Modelo sin incluir variable de interes
+y_controles<-lm(log_income~ formal + age + age_2 + estrato1 
+                   + maxEducLevel + p6426 + oficio, data= Base_var)
+summ(y_controles)
+
+class(Base_var$female)
+
+female_controles<-lm(female~ formal + age + age_2 + estrato1 
+                    + maxEducLevel + p6426 + oficio, data= Base_var)
+summ(female_controles)
+
+Base_var$res_y= y_controles$residuals
+Base_var$res_f= female_controles$residuals
+
+reg_final<-lm(res_y~ res_f, data=Base_var)
+summ(reg_final)
+
+stargazer(mod_income_without_f,model_female_controls, reg_final, type = "text")
+
 
 
 #### ----- 5.Predicting Earnigns 
