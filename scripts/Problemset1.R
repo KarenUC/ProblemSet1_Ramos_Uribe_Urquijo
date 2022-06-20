@@ -387,7 +387,7 @@ ggarrange(g1, g_female_p, g_male_p, nrow = 1, ncol = 3)
 #Modelo unconditional earnings gap con controles
 model_controls<-lm(log_income~female + 
                           formal + age + age_2 + estrato1 
-                   + maxEducLevel + p6426 + oficio, data= Base_var)
+                   + maxEducLevel + p6426, data= Base_var)
 summ(model_controls)
 stargazer(model_controls, type = "text")
 
@@ -396,7 +396,7 @@ stargazer(model_controls, type = "text")
 ##Estimación del modelo con los residuales
 #Modelo sin incluir variable de interes
 y_controles<-lm(log_income~ formal + age + age_2 + estrato1 
-                   + maxEducLevel + p6426 + oficio, data= Base_var)
+                   + maxEducLevel + p6426, data= Base_var)
 summ(y_controles)
 
 Base_var = Base_var %>% 
@@ -405,7 +405,7 @@ Base_var = Base_var %>%
 class(Base_var$femalenum)
 
 female_controles<-lm(femalenum~ formal + age + age_2 + estrato1 
-                    + maxEducLevel + p6426 + oficio, data= Base_var)
+                    + maxEducLevel + p6426, data= Base_var)
 summ(female_controles)
 
 Base_var$res_y= y_controles$residuals
@@ -419,5 +419,67 @@ stargazer(model_controls, reg_final, type = "text")
 ###Falta la interpretación!!!!!
 
 #### ----- 5.Predicting Earnigns 
+set.seed(10101)
+##Dividir muestra
+sample <- sample.int(n = nrow(Base_var), size = floor(.70*nrow(Base_var)), replace = F)
+train <- Base_var[sample, ]
+test  <- Base_var[-sample, ]
+
+##Estimar modelo solo incluyendo la constante - Benchmark
+model_cte<-lm(ingtot~1,data=train)
+summary(model_cte)
+stargazer(model_cte, type = "text")
+coef(model_cte)
+mean(train$ingtot)
+
+##Estimar los modelos anteriores
+##1. Age
+model_ing_train<-lm(ingtot~age + age_2, 
+                 data= train)
+summ(model_ing_train)
+
+##2. Female
+model_ing_fem_train<-lm(log_income~female, data= train)
+summ(model_ing_fem_train)
+
+##3. Female and controls
+model_cont_train<-lm(log_income~female + 
+                     formal + age + age_2 + estrato1 
+                   + maxEducLevel + p6426, data= train)
+summ(model_cont_train)
+
+stargazer(model_ing_train, model_ing_fem_train, model_cont_train , type = "text")
+
+##5 models 
+##1
+
+##2
+
+##3
+
+##4
+
+##5
+
+
+##Reportar y comparar el error medio de predicción de los 3 modelos
+
+
+## Mejor modelo (lowest average prediction error)
+##Compute the leverage statistic for each observation in the test sample
+
+
+##Validación cruzada 
+
+##LOOCV
+
+#Loop that does the following: 
+##-Estimate the regression model using all but the i − th observation.
+##-Calculate the prediction error for the i − th observation, i.e. (yi − yˆi)
+##-Calculate the average of the numbers obtained in the previous step to 
+#get the average mean square error. This is known as the Leave-One-Out
+#-Cross-Validation (LOOCV) statistic.
+
+##Compare the results to those obtained in the computation of the leverage statistic
 
 
