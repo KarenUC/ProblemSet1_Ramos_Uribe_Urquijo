@@ -387,8 +387,8 @@ ggarrange(g1, g_female_p, g_male_p, nrow = 1, ncol = 3)
 #Modelo unconditional earnings gap con controles
 Base_var$p6426_2 <- (Base_var$p6426)^2
 model_controls<-lm(log_income~female + 
-                          formal + age + age_2 + estrato1 + maxEducLevel + p6426 + , data= Base_var)
-summ(model_income_female)
+                          formal + age + age_2 + estrato1 + maxEducLevel + p6426 + p6426_2 + oficio, data= Base_var)
+summ(model_controls)
 stargazer(model_income_female, type = "text")
 
 
