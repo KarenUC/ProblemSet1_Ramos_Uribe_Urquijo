@@ -28,7 +28,9 @@ p_load(skimr, # summary data
        stringr,
        dplyr,
        RSelenium,
-       Rcpp)
+       Rcpp,
+       robotstxt,
+       sjPlot)
 
 library(tidyverse)
 library(robotstxt)
@@ -117,7 +119,9 @@ db_filtro <- subset(db, age >= 18 & ocu == 1)
 
 Base_var <- db_filtro %>% select(directorio, p6050, fex_c, ingtot, ocu, p6210s1,
                                  p6210, maxEducLevel, p6426, age, sex, estrato1,
-                                 formal, informal, clase, oficio, sizeFirm, p7040)
+                                 formal, informal, clase, oficio, sizeFirm, p7040,
+                                 hoursWorkUsual, relab, cuentaPropia,
+                                 microEmpresa, college)
 skim(Base_var)
 
 ### --- Missing Values
@@ -516,7 +520,7 @@ stargazer(model_5_train , type = "text")
 ##Reportar y comparar el error medio de predicción de los 3 modelos
 
 residuals1<-mean(model_ing_train$residuals)
-residuals1<-mean(model_ing_fem_train$residuals)
+residuals2<-mean(model_ing_fem_train$residuals)
 residuals3<-mean(model_cont_train$residuals)
 residuals4<-mean(model_1_train$residuals)
 residuals5<-mean(model_2_train$residuals)
@@ -531,11 +535,10 @@ min(table1) ##Lowest average prediction error_ modelo_1_train (Modelo de mincer 
 ## Mejor modelo (lowest average prediction error)
 ##Compute the leverage statistic for each observation in the test sample
 library(dplyr)
-test$ej<-c(rep(0, 465),1)
-head(test)
-tail(test)
-
 test$experiencia_2<-test$p6426^2
+
+
+test$ej<-c(rep(0, 465),1)
 reg_test_1<-lm(log_income~ maxEducLevel + p6426 + experiencia_2 + ej, 
             data= test)
 summ(reg_test_1)
