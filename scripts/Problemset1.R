@@ -117,7 +117,9 @@ db_filtro <- subset(db, age >= 18 & ocu == 1)
 
 Base_var <- db_filtro %>% select(directorio, p6050, fex_c, ingtot, ocu, p6210s1,
                                  p6210, maxEducLevel, p6426, age, sex, estrato1,
-                                 formal, informal, clase, oficio, sizeFirm, p7040)
+                                 formal, informal, clase, oficio, sizeFirm, p7040,
+                                 hoursWorkUsual, p7040, relab, cuentaPropia,
+                                 microEmpresa, college)
 skim(Base_var)
 
 ### --- Missing Values
@@ -193,8 +195,6 @@ ggarrange(hist_ingtot, hist_ingtot_boxcox, nrow = 1, ncol = 2)
 
 ### --- Estadisticas Descriptivas --- ###
 
-library(sjPlot)
-
 library(stargazer)
 
 graph_base <- as.data.frame(Base_var)
@@ -202,16 +202,7 @@ graph_base <- as.data.frame(Base_var)
 stargazer(graph_base[c("ingtot", "age", "p6426" )], type="text", flip = TRUE, digits = 0)
 stargazer(graph_base[c("ingtot", "age", "p6426" )], type="latex", flip = TRUE, digits = 0)
 
-stargazer(graph_base[c("ingtot", "age", "p6426" )], type='text', flip = TRUE,
-          digits=0, header=FALSE, 
-          summary.stat=c('N', 'mean', 'sd','min', 'p25' ,'median', 'p75', 'max'))
-
-stargazer(graph_base[c("ingtot", "age", "p6426")], type='latex', flip = TRUE,
-          digits=0, header=FALSE, 
-          summary.stat=c('N', 'mean', 'sd','min', 'p25' ,'median', 'p75', 'max'))
-
-
-
+hist(Base_var$ingtot)
 # Graficas
 
 # Ingresos vs. estrato y sexo
@@ -226,6 +217,7 @@ box_plot <- box_plot +
                      name = "Sexo") +
   labs(x= "Estrato Socioecon?mico", y ="Ingresos Totales") 
 
+box_plot
 
 box_plot_boxcox<- ggplot(data=Base_var , mapping = aes(as.factor(estrato1) , ingtot_boxcox)) + 
   geom_boxplot()
@@ -236,6 +228,7 @@ box_plot_boxcox <- box_plot_boxcox +
                      label = c("0"="Hombre" , "1"="Mujer") , 
                      name = "Sexo") +
   labs(x= "Estrato Socioecon?mico", y ="Ingresos Totales (boxcox)") 
+
 
 box_plot_boxcox
 
@@ -258,9 +251,7 @@ graph2_boxcox <- ggplot(data = Base_var ,
                      label = c("0"="Informal" , "1"="Formal") , 
                      name = "Formal") +
   labs(x = "Edad", y = "Ingresos Totales")
-
 graph2_boxcox
-
 
 ###--- 3. Age-earnings profile
 ## Escoger variable para salario
