@@ -193,6 +193,8 @@ ggarrange(hist_ingtot, hist_ingtot_boxcox, nrow = 1, ncol = 2)
 
 ### --- Estadisticas Descriptivas --- ###
 
+library(sjPlot)
+
 library(stargazer)
 
 graph_base <- as.data.frame(Base_var)
@@ -200,7 +202,16 @@ graph_base <- as.data.frame(Base_var)
 stargazer(graph_base[c("ingtot", "age", "p6426" )], type="text", flip = TRUE, digits = 0)
 stargazer(graph_base[c("ingtot", "age", "p6426" )], type="latex", flip = TRUE, digits = 0)
 
-hist(Base_var$ingtot)
+stargazer(graph_base[c("ingtot", "age", "p6426" )], type='text', flip = TRUE,
+          digits=0, header=FALSE, 
+          summary.stat=c('N', 'mean', 'sd','min', 'p25' ,'median', 'p75', 'max'))
+
+stargazer(graph_base[c("ingtot", "age", "p6426")], type='latex', flip = TRUE,
+          digits=0, header=FALSE, 
+          summary.stat=c('N', 'mean', 'sd','min', 'p25' ,'median', 'p75', 'max'))
+
+
+
 # Graficas
 
 # Ingresos vs. estrato y sexo
@@ -215,7 +226,6 @@ box_plot <- box_plot +
                      name = "Sexo") +
   labs(x= "Estrato Socioeconómico", y ="Ingresos Totales") 
 
-box_plot
 
 box_plot_boxcox<- ggplot(data=Base_var , mapping = aes(as.factor(estrato1) , ingtot_boxcox)) + 
   geom_boxplot()
@@ -224,15 +234,22 @@ box_plot_boxcox <- box_plot_boxcox +
   geom_point(aes(colour=as.factor(sex))) +
   scale_color_manual(values = c("0"="red" , "1"="blue") ,
                      label = c("0"="Hombre" , "1"="Mujer") , 
-                     name = "Sexo")
+                     name = "Sexo") +
+  labs(x= "Estrato Socioeconómico", y ="Ingresos Totales (boxcox)") 
+
 box_plot_boxcox
 
 # Densidad Ingresos por formal, informal 
 
+
 graph2 <- ggplot(data = Base_var , 
                  mapping = aes(x = age , y = ingtot , group=as.factor(formal)
                                , color=as.factor(formal))) +
-geom_point()
+          geom_point() +
+          labs(x = "Edad", y = "Ingresos Totales")
+
+
+
 
 graph2
 
