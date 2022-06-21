@@ -117,7 +117,9 @@ db_filtro <- subset(db, age >= 18 & ocu == 1)
 
 Base_var <- db_filtro %>% select(directorio, p6050, fex_c, ingtot, ocu, p6210s1,
                                  p6210, maxEducLevel, p6426, age, sex, estrato1,
-                                 formal, informal, clase, oficio, sizeFirm, p7040)
+                                 formal, informal, clase, oficio, sizeFirm, p7040,
+                                 hoursWorkUsual, p7040, relab, cuentaPropia,
+                                 microEmpresa, college)
 skim(Base_var)
 
 ### --- Missing Values
@@ -193,8 +195,6 @@ ggarrange(hist_ingtot, hist_ingtot_boxcox, nrow = 1, ncol = 2)
 
 ### --- Estadisticas Descriptivas --- ###
 
-library(sjPlot)
-
 library(stargazer)
 
 graph_base <- as.data.frame(Base_var)
@@ -202,16 +202,7 @@ graph_base <- as.data.frame(Base_var)
 stargazer(graph_base[c("ingtot", "age", "p6426" )], type="text", flip = TRUE, digits = 0)
 stargazer(graph_base[c("ingtot", "age", "p6426" )], type="latex", flip = TRUE, digits = 0)
 
-stargazer(graph_base[c("ingtot", "age", "p6426" )], type='text', flip = TRUE,
-          digits=0, header=FALSE, 
-          summary.stat=c('N', 'mean', 'sd','min', 'p25' ,'median', 'p75', 'max'))
-
-stargazer(graph_base[c("ingtot", "age", "p6426")], type='latex', flip = TRUE,
-          digits=0, header=FALSE, 
-          summary.stat=c('N', 'mean', 'sd','min', 'p25' ,'median', 'p75', 'max'))
-
-
-
+hist(Base_var$ingtot)
 # Graficas
 
 # Ingresos vs. estrato y sexo
@@ -224,8 +215,9 @@ box_plot <- box_plot +
   scale_color_manual(values = c("0"="red" , "1"="blue") ,
                      label = c("0"="Hombre" , "1"="Mujer") , 
                      name = "Sexo") +
-  labs(x= "Estrato Socioecon髆ico", y ="Ingresos Totales") 
+  labs(x= "Estrato Socioecon?mico", y ="Ingresos Totales") 
 
+box_plot
 
 box_plot_boxcox<- ggplot(data=Base_var , mapping = aes(as.factor(estrato1) , ingtot_boxcox)) + 
   geom_boxplot()
@@ -234,33 +226,24 @@ box_plot_boxcox <- box_plot_boxcox +
   geom_point(aes(colour=as.factor(sex))) +
   scale_color_manual(values = c("0"="red" , "1"="blue") ,
                      label = c("0"="Hombre" , "1"="Mujer") , 
-                     name = "Sexo") +
-  labs(x= "Estrato Socioecon髆ico", y ="Ingresos Totales (boxcox)") 
-
+                     name = "Sexo")
 box_plot_boxcox
 
 # Densidad Ingresos por formal, informal 
 
 graph2 <- ggplot(data = Base_var , 
-                 mapping = aes(x = age , y = ingtot , group=as.factor(formal))) +
-  geom_point(aes(colour=as.factor(formal))) +
-  scale_color_manual(values = c("0"="cadetblue3" , "1"="coral") ,
-                     label = c("0"="Informal" , "1"="Formal") , 
-                     name = "Formal") +
-    labs(x = "Edad", y = "Ingresos Totales")
+                 mapping = aes(x = age , y = ingtot , group=as.factor(formal)
+                               , color=as.factor(formal))) +
+geom_point()
 
 graph2
 
-graph2_boxcox <- ggplot(data = Base_var , 
-                 mapping = aes(x = age , y = ingtot_boxcox , group=as.factor(formal))) +
-  geom_point(aes(colour=as.factor(formal))) +
-  scale_color_manual(values = c("0"="cadetblue3" , "1"="coral") ,
-                     label = c("0"="Informal" , "1"="Formal") , 
-                     name = "Formal") +
-  labs(x = "Edad", y = "Ingresos Totales")
+graph2_boxcox<- ggplot(data = Base_var , 
+                 mapping = aes(x = age , y = ingtot_boxcox , group=as.factor(formal)
+                               , color=as.factor(formal))) +
+  geom_point()
 
 graph2_boxcox
-
 
 ###--- 3. Age-earnings profile
 ## Escoger variable para salario
@@ -480,23 +463,72 @@ summ(model_cont_train)
 stargazer(model_ing_train, model_ing_fem_train, model_cont_train , type = "text")
 
 ##5 models 
-##1
 
-##2
+##1_Educaci贸n y experiencia
+train$experiencia_2<-train$p6426^2
+model_1_train<-lm(log_income~ maxEducLevel + p6426 + experiencia_2, 
+                     data= train)
+summ(model_1_train)
+stargazer(model_1_train , type = "text")
 
-##3
+##2_Horas de trabajo y segundo trabajo (p7040)
+model_2_train<-lm(ingtot_boxcox ~ hoursWorkUsual + p7040, 
+data= train)
+summ(model_2_train)
+stargazer(model_2_train , type = "text")
 
-##4
+##3_Sexo,Cuenta propia e informal
+model_3_train<-lm(ingtot_boxcox ~ sex + cuentaPropia + informal, 
+                  data= train)
+summ(model_3_train)
+stargazer(model_3_train , type = "text")
 
-##5
+##4 Microempresa, horas trabajadas y experiencia
+model_4_train<-lm(log_income~ microEmpresa + sizeFirm + hoursWorkUsual + p6426, 
+data= train)
+summ(model_4_train)
+stargazer(model_4_train , type = "text")
+
+##5 Age, college*sex y relab
+model_5_train<-lm(ingtot_boxcox~ age + college + sex + (college*sex) , 
+                  data= train)
+summ(model_5_train)
+stargazer(model_5_train , type = "text")
 
 
 ##Reportar y comparar el error medio de predicci贸n de los 3 modelos
 
+residuals1<-mean(model_ing_train$residuals)
+residuals1<-mean(model_ing_fem_train$residuals)
+residuals3<-mean(model_cont_train$residuals)
+residuals4<-mean(model_1_train$residuals)
+residuals5<-mean(model_2_train$residuals)
+residuals6<-mean(model_3_train$residuals)
+residuals7<-mean(model_4_train$residuals)
+residuals8<-mean(model_5_train$residuals)
+
+table1<-rbind(residuals1,residuals2, residuals3, residuals4, residuals5, residuals6, residuals7, residuals8)
+colnames(table1) <- c("value")
+min(table1) ##Lowest average prediction error_ modelo_1_train (Modelo de mincer educaci贸n y experiencia)
 
 ## Mejor modelo (lowest average prediction error)
 ##Compute the leverage statistic for each observation in the test sample
+library(dplyr)
+test$ej<-c(rep(0, 465),1)
+head(test)
+tail(test)
 
+test$experiencia_2<-test$p6426^2
+reg_test_1<-lm(log_income~ maxEducLevel + p6426 + experiencia_2 + ej, 
+            data= test)
+summ(reg_test_1)
+reg_test_2<-lm(log_income~ maxEducLevel + p6426 + experiencia_2,test)$residuals
+summ(reg_test_1)
+reg_test_3 <-lm(ej~ maxEducLevel + p6426 + experiencia_2,test)$residuals
+summ(reg_test_1)
+reg_test_leverage<-lm(reg_test_2~reg_test_3 )
+summ(reg_test_1)
+stargazer(reg_test_1,reg_test_leverage,type="text")
 
 ##Validaci贸n cruzada 
 
