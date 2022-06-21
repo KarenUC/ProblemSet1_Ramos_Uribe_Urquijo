@@ -200,7 +200,7 @@ graph_base <- as.data.frame(Base_var)
 stargazer(graph_base[c("ingtot", "age", "p6426" )], type="text", flip = TRUE, digits = 0)
 stargazer(graph_base[c("ingtot", "age", "p6426" )], type="latex", flip = TRUE, digits = 0)
 
-
+hist(Base_var$ingtot)
 # Graficas
 
 # Ingresos vs. estrato y sexo
@@ -212,7 +212,9 @@ box_plot <- box_plot +
   geom_point(aes(colour=as.factor(sex))) +
   scale_color_manual(values = c("0"="red" , "1"="blue") ,
                      label = c("0"="Hombre" , "1"="Mujer") , 
-                     name = "Sexo")
+                     name = "Sexo") +
+  labs(x= "Estrato Socioeconómico", y ="Ingresos Totales") 
+
 box_plot
 
 box_plot_boxcox<- ggplot(data=Base_var , mapping = aes(as.factor(estrato1) , ingtot_boxcox)) + 
