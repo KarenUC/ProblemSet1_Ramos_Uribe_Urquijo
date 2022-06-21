@@ -241,24 +241,28 @@ box_plot_boxcox
 
 # Densidad Ingresos por formal, informal 
 
-
 graph2 <- ggplot(data = Base_var , 
-                 mapping = aes(x = age , y = ingtot , group=as.factor(formal)
-                               , color=as.factor(formal))) +
-          geom_point() +
-          labs(x = "Edad", y = "Ingresos Totales")
-
-
-
+                 mapping = aes(x = age , y = ingtot , group=as.factor(formal))) +
+  geom_point(aes(colour=as.factor(formal))) +
+  scale_color_manual(values = c("0"="cadetblue3" , "1"="coral") ,
+                     label = c("0"="Informal" , "1"="Formal") , 
+                     name = "Formal") +
+    labs(x = "Edad", y = "Ingresos Totales")
 
 graph2
 
-graph2_boxcox<- ggplot(data = Base_var , 
-                 mapping = aes(x = age , y = ingtot_boxcox , group=as.factor(formal)
-                               , color=as.factor(formal))) +
-  geom_point()
+graph2_boxcox <- ggplot(data = Base_var , 
+                 mapping = aes(x = age , y = ingtot_boxcox , group=as.factor(formal))) +
+  geom_point(aes(colour=as.factor(formal))) +
+  scale_color_manual(values = c("0"="cadetblue3" , "1"="coral") ,
+                     label = c("0"="Informal" , "1"="Formal") , 
+                     name = "Formal") +
+  labs(x = "Edad", y = "Ingresos Totales")
 
 graph2_boxcox
+
+
+
 
 ###--- 3. Age-earnings profile
 ## Escoger variable para salario
