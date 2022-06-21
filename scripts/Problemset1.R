@@ -262,8 +262,6 @@ graph2_boxcox <- ggplot(data = Base_var ,
 graph2_boxcox
 
 
-
-
 ###--- 3. Age-earnings profile
 ## Escoger variable para salario
 # Se escoge la variable ingresos totales después de revisar la base, dado que 
