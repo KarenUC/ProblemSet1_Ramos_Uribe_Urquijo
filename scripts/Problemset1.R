@@ -537,18 +537,30 @@ min(table1) ##Lowest average prediction error_ modelo_1_train (Modelo de mincer 
 library(dplyr)
 test$experiencia_2<-test$p6426^2
 
+Coefs_leverage<-c(rep(0, 466))
+Coefs_leverage
 
-test$ej<-c(rep(0, 465),1)
-reg_test_1<-lm(log_income~ maxEducLevel + p6426 + experiencia_2 + ej, 
-            data= test)
-summ(reg_test_1)
-reg_test_2<-lm(log_income~ maxEducLevel + p6426 + experiencia_2,test)$residuals
-summ(reg_test_1)
-reg_test_3 <-lm(ej~ maxEducLevel + p6426 + experiencia_2,test)$residuals
-summ(reg_test_1)
+matriz<-diag(466)
+
+test_mat<-cbind(test,matriz)
+colnames(test_mat)
+
+for (i in 37:503){
+    i<-37
+    #a<-paste0("...",i)
+    a<-as.factor(test_mat[ ,i:i])
+reg_test_1<-lm(log_income~ maxEducLevel + p6426 + experiencia_2 + a , 
+                 data= test_mat)
+reg_test_2<-lm(log_income~ maxEducLevel + p6426 + experiencia_2,test_mat)$residuals
+reg_test_3 <-lm(a~ maxEducLevel + p6426 + experiencia_2,test_mat)$residuals
 reg_test_leverage<-lm(reg_test_2~reg_test_3 )
-summ(reg_test_1)
-stargazer(reg_test_1,reg_test_leverage,type="text")
+
+b2<-reg_test_leverage$coefficients[2]
+Coefs_leverage<-rbind(Coefs_leverage,b2)
+}
+
+reg_test_1<-lm(log_income~ maxEducLevel + p6426 + experiencia_2 + ...37, 
+               data= test_mat)
 
 ##Validación cruzada 
 
