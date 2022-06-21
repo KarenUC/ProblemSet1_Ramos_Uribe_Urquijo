@@ -38,13 +38,13 @@ library(robotstxt)
 ## 1. a) Data acquisition
 
 geih <- data.frame()
-  for (i in 1:10){
-      url <-paste0("https://ignaciomsarmiento.github.io/GEIH2018_sample/pages/geih_page_",i, ".html")
-    temp <- read_html(url) %>%
-      html_table()
-    geih <- rbind(geih, temp)
-  }
-  
+for (i in 1:10){
+  url <-paste0("https://ignaciomsarmiento.github.io/GEIH2018_sample/pages/geih_page_",i, ".html")
+  temp <- read_html(url) %>%
+    html_table()
+  geih <- rbind(geih, temp)
+}
+
 
 ###validar restricciones en los datos con robots.txt
 
@@ -117,9 +117,7 @@ db_filtro <- subset(db, age >= 18 & ocu == 1)
 
 Base_var <- db_filtro %>% select(directorio, p6050, fex_c, ingtot, ocu, p6210s1,
                                  p6210, maxEducLevel, p6426, age, sex, estrato1,
-                                 formal, informal, clase, oficio, sizeFirm, p7040,
-                                 hoursWorkUsual, p7040, relab, cuentaPropia,
-                                 microEmpresa, college)
+                                 formal, informal, clase, oficio, sizeFirm, p7040)
 skim(Base_var)
 
 ### --- Missing Values
@@ -154,8 +152,8 @@ Base_var = Base_var %>%
 #Impute a ingresos totales iguales a 0 el promedio del ingreso del hogar
 Base_var = Base_var %>%
   mutate(ingtot = ifelse(ingtot==0,
-                            yes = mean_ingtot,
-                            no = ingtot))
+                         yes = mean_ingtot,
+                         no = ingtot))
 
 #Validar que no queden 0 en ingreso despu?s de imputar
 
@@ -195,6 +193,8 @@ ggarrange(hist_ingtot, hist_ingtot_boxcox, nrow = 1, ncol = 2)
 
 ### --- Estadisticas Descriptivas --- ###
 
+library(sjPlot)
+
 library(stargazer)
 
 graph_base <- as.data.frame(Base_var)
@@ -202,7 +202,16 @@ graph_base <- as.data.frame(Base_var)
 stargazer(graph_base[c("ingtot", "age", "p6426" )], type="text", flip = TRUE, digits = 0)
 stargazer(graph_base[c("ingtot", "age", "p6426" )], type="latex", flip = TRUE, digits = 0)
 
-hist(Base_var$ingtot)
+stargazer(graph_base[c("ingtot", "age", "p6426" )], type='text', flip = TRUE,
+          digits=0, header=FALSE, 
+          summary.stat=c('N', 'mean', 'sd','min', 'p25' ,'median', 'p75', 'max'))
+
+stargazer(graph_base[c("ingtot", "age", "p6426")], type='latex', flip = TRUE,
+          digits=0, header=FALSE, 
+          summary.stat=c('N', 'mean', 'sd','min', 'p25' ,'median', 'p75', 'max'))
+
+
+
 # Graficas
 
 # Ingresos vs. estrato y sexo
@@ -217,7 +226,6 @@ box_plot <- box_plot +
                      name = "Sexo") +
   labs(x= "Estrato Socioecon?mico", y ="Ingresos Totales") 
 
-box_plot
 
 box_plot_boxcox<- ggplot(data=Base_var , mapping = aes(as.factor(estrato1) , ingtot_boxcox)) + 
   geom_boxplot()
@@ -226,24 +234,33 @@ box_plot_boxcox <- box_plot_boxcox +
   geom_point(aes(colour=as.factor(sex))) +
   scale_color_manual(values = c("0"="red" , "1"="blue") ,
                      label = c("0"="Hombre" , "1"="Mujer") , 
-                     name = "Sexo")
+                     name = "Sexo") +
+  labs(x= "Estrato Socioecon?mico", y ="Ingresos Totales (boxcox)") 
+
 box_plot_boxcox
 
 # Densidad Ingresos por formal, informal 
 
 graph2 <- ggplot(data = Base_var , 
-                 mapping = aes(x = age , y = ingtot , group=as.factor(formal)
-                               , color=as.factor(formal))) +
-geom_point()
+                 mapping = aes(x = age , y = ingtot , group=as.factor(formal))) +
+  geom_point(aes(colour=as.factor(formal))) +
+  scale_color_manual(values = c("0"="cadetblue3" , "1"="coral") ,
+                     label = c("0"="Informal" , "1"="Formal") , 
+                     name = "Formal") +
+  labs(x = "Edad", y = "Ingresos Totales")
 
 graph2
 
-graph2_boxcox<- ggplot(data = Base_var , 
-                 mapping = aes(x = age , y = ingtot_boxcox , group=as.factor(formal)
-                               , color=as.factor(formal))) +
-  geom_point()
+graph2_boxcox <- ggplot(data = Base_var , 
+                        mapping = aes(x = age , y = ingtot_boxcox , group=as.factor(formal))) +
+  geom_point(aes(colour=as.factor(formal))) +
+  scale_color_manual(values = c("0"="cadetblue3" , "1"="coral") ,
+                     label = c("0"="Informal" , "1"="Formal") , 
+                     name = "Formal") +
+  labs(x = "Edad", y = "Ingresos Totales")
 
 graph2_boxcox
+
 
 ###--- 3. Age-earnings profile
 ## Escoger variable para salario
@@ -259,7 +276,7 @@ summ(model_income)
 
 ##  OLS Age-earnings model - Con trasformación boxcox
 model_income_boxcox<-lm(ingtot_boxcox~age + age_2, 
-                 data= Base_var)
+                        data= Base_var)
 summ(model_income_boxcox)
 
 #Comparar modelos
@@ -294,7 +311,7 @@ p_load(boot)
 R<-1000
 fun<-function(Base_var,index){
   coef(lm(ingtot~age + age_2, data= Base_var, subset = index))
-  }
+}
 boot(Base_var, fun, R)
 ## Edad optima
 b1<-model_income$coefficients[2]
@@ -309,7 +326,7 @@ boot(Base_var, fun, R)
 ## Edad optima
 b1_boxcox<-model_income_boxcox$coefficients[2]
 model_income$
-b2_boxcox<-model_income_boxcox$coefficients[3]
+  b2_boxcox<-model_income_boxcox$coefficients[3]
 edad_optima_boxcox<--(b1_boxcox/(2*b2_boxcox))
 
 edad_optima
@@ -398,7 +415,7 @@ ggarrange(g1, g_female_p, g_male_p, nrow = 1, ncol = 3)
 ####----Equal Pay for Equal Work?-----###
 #Modelo unconditional earnings gap con controles
 model_controls<-lm(log_income~female + 
-                          formal + age + age_2 + estrato1 
+                     formal + age + age_2 + estrato1 
                    + maxEducLevel + p6426, data= Base_var)
 summ(model_controls)
 stargazer(model_controls, type = "text")
@@ -408,7 +425,7 @@ stargazer(model_controls, type = "text")
 ##Estimación del modelo con los residuales
 #Modelo sin incluir variable de interes
 y_controles<-lm(log_income~ formal + age + age_2 + estrato1 
-                   + maxEducLevel + p6426, data= Base_var)
+                + maxEducLevel + p6426, data= Base_var)
 summ(y_controles)
 
 Base_var = Base_var %>% 
@@ -417,7 +434,7 @@ Base_var = Base_var %>%
 class(Base_var$femalenum)
 
 female_controles<-lm(femalenum~ formal + age + age_2 + estrato1 
-                    + maxEducLevel + p6426, data= Base_var)
+                     + maxEducLevel + p6426, data= Base_var)
 summ(female_controles)
 
 Base_var$res_y= y_controles$residuals
@@ -447,7 +464,7 @@ mean(train$ingtot)
 ##Estimar los modelos anteriores
 ##1. Age
 model_ing_train<-lm(ingtot~age + age_2, 
-                 data= train)
+                    data= train)
 summ(model_ing_train)
 
 ##2. Female
@@ -456,8 +473,8 @@ summ(model_ing_fem_train)
 
 ##3. Female and controls
 model_cont_train<-lm(log_income~female + 
-                     formal + age + age_2 + estrato1 
-                   + maxEducLevel + p6426, data= train)
+                       formal + age + age_2 + estrato1 
+                     + maxEducLevel + p6426, data= train)
 summ(model_cont_train)
 
 stargazer(model_ing_train, model_ing_fem_train, model_cont_train , type = "text")
