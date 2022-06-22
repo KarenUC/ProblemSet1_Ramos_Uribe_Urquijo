@@ -204,11 +204,11 @@ stargazer(graph_base[c("ingtot", "age", "p6426" )], type="latex", flip = TRUE, d
 
 stargazer(graph_base[c("ingtot", "age", "p6426" )], type='text', flip = TRUE,
           digits=0, header=FALSE, 
-          summary.stat=c('N', 'mean', 'sd','min', 'p25' ,'median', 'p75', 'max'))
+          summary.stat=c('N', 'mean', 'sd','min' ,'median', 'max'))
 
 stargazer(graph_base[c("ingtot", "age", "p6426")], type='latex', flip = TRUE,
           digits=0, header=FALSE, 
-          summary.stat=c('N', 'mean', 'sd','min', 'p25' ,'median', 'p75', 'max'))
+          summary.stat=c('N', 'mean', 'sd','min' ,'median', 'max'))
 
 
 
@@ -289,20 +289,24 @@ Base_var$prediccion1<-predict(model_income)
 Base_var$prediccion1_boxcox<-predict(model_income_boxcox)
 
 ########
-#Correlaci贸n entre predicci贸n y valor observado
+#Graficas predicci髇 y valor observado
+
 cor(Base_var$ingtot,Base_var$prediccion1)
 ggplot(Base_var, aes(x = prediccion1, y = ingtot)) +
   geom_point() +
   geom_abline(intercept = 0, slope = 1, color = "green")
 
-g1<-ggplot(Base_var, aes(x = age, y = ingtot)) + geom_point()
-g2<-ggplot(Base_var, aes(x = age, y = prediccion1)) + geom_point()
+g1<-ggplot(Base_var, aes(x = age, y = ingtot)) + geom_point(colour = "darkcyan") + labs(x = "Edad", y = "Ingresos Totales")
+
+g2<-ggplot(Base_var, aes(x = age, y = prediccion1)) + geom_point(colour = "violetred2") + labs(x = "Edad", y = "Ingresos Totales Predicha")
 
 cor(Base_var$ingtot_boxcox,Base_var$prediccion1_boxcox)
-ggplot(Base_var, aes(x = prediccion1, y = ingtot_boxcox)) +
-  geom_point() + geom_abline(intercept = 0, slope = 1, color = "blue")
 
-g2_boxcox<-ggplot(Base_var, aes(x = age, y = prediccion1_boxcox)) + geom_point()
+ggplot(Base_var, aes(x = prediccion1, y = ingtot_boxcox)) +
+  geom_point() + geom_abline(intercept = 0, slope = 1, color = "blue") 
+  
+
+g2_boxcox<-ggplot(Base_var, aes(x = age, y = prediccion1_boxcox)) + geom_point(colour = "violetred2") + labs(x = "Edad", y = "Ingresos Totales Predicha - Boxcox")
 
 ggarrange(g1, g2, g2_boxcox, nrow = 1, ncol = 3)
 
@@ -356,6 +360,8 @@ sum(is.na(Base_var$log_income))
 model_income_female<-lm(log_income~female, data= Base_var)
 summ(model_income_female)
 stargazer(model_income_female, type = "text")
+stargazer(model_income_female, type = "latex")
+
 ##Qu茅 tan bueno es el modelo? Interpretaci贸n del R2
 
 
@@ -404,11 +410,13 @@ Base_var$predict_gender<-ifelse(Base_var$female==1, predict(model_income_age_fem
 #Graficar predicciones para hombre y para mujer
 Base_gender_female<-subset(Base_var, female==1)
 Base_gender_female$female_pred<-predict(model_income_age_female)
-g_female_p<-ggplot(Base_gender_female, aes(x = age, y = female_pred)) + geom_point()
+g_female_p<-ggplot(Base_gender_female, aes(x = age, y = female_pred)) + geom_point(colour = "orange1") + labs(x = "Edad", y = "Ingresos Totales Predicha Mujer")
+
 
 Base_gender_male<-subset(Base_var, female==0)
 Base_gender_male$male_pred<-predict(model_income_age_male)
-g_male_p<-ggplot(Base_gender_male, aes(x = age, y = male_pred)) + geom_point()
+g_male_p<-ggplot(Base_gender_male, aes(x = age, y = male_pred)) + geom_point(colour = "steelblue1") + labs(x = "Edad", y = "Ingresos Totales Predicha Hombre")
+
 
 ggarrange(g1, g_female_p, g_male_p, nrow = 1, ncol = 3)
 
@@ -444,6 +452,7 @@ reg_final<-lm(res_y~ res_f, data=Base_var)
 summ(reg_final)
 
 stargazer(model_controls, reg_final, type = "text")
+stargazer(model_controls, reg_final, type = "latex")
 
 ###Falta la interpretaci贸n!!!!!
 
