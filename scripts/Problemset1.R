@@ -28,7 +28,9 @@ p_load(skimr, # summary data
        stringr,
        dplyr,
        RSelenium,
-       Rcpp)
+       Rcpp,
+       robotstxt,
+       sjPlot)
 
 library(tidyverse)
 library(robotstxt)
@@ -38,13 +40,13 @@ library(robotstxt)
 ## 1. a) Data acquisition
 
 geih <- data.frame()
-  for (i in 1:10){
-      url <-paste0("https://ignaciomsarmiento.github.io/GEIH2018_sample/pages/geih_page_",i, ".html")
-    temp <- read_html(url) %>%
-      html_table()
-    geih <- rbind(geih, temp)
-  }
-  
+for (i in 1:10){
+  url <-paste0("https://ignaciomsarmiento.github.io/GEIH2018_sample/pages/geih_page_",i, ".html")
+  temp <- read_html(url) %>%
+    html_table()
+  geih <- rbind(geih, temp)
+}
+
 
 ###validar restricciones en los datos con robots.txt
 
@@ -117,7 +119,9 @@ db_filtro <- subset(db, age >= 18 & ocu == 1)
 
 Base_var <- db_filtro %>% select(directorio, p6050, fex_c, ingtot, ocu, p6210s1,
                                  p6210, maxEducLevel, p6426, age, sex, estrato1,
-                                 formal, informal, clase, oficio, sizeFirm, p7040)
+                                 formal, informal, clase, oficio, sizeFirm, p7040,
+                                 hoursWorkUsual, relab, cuentaPropia,
+                                 microEmpresa, college)
 skim(Base_var)
 
 ### --- Missing Values
@@ -152,8 +156,8 @@ Base_var = Base_var %>%
 #Impute a ingresos totales iguales a 0 el promedio del ingreso del hogar
 Base_var = Base_var %>%
   mutate(ingtot = ifelse(ingtot==0,
-                            yes = mean_ingtot,
-                            no = ingtot))
+                         yes = mean_ingtot,
+                         no = ingtot))
 
 #Validar que no queden 0 en ingreso despu?s de imputar
 
@@ -224,7 +228,7 @@ box_plot <- box_plot +
   scale_color_manual(values = c("0"="red" , "1"="blue") ,
                      label = c("0"="Hombre" , "1"="Mujer") , 
                      name = "Sexo") +
-  labs(x= "Estrato Socioecon髆ico", y ="Ingresos Totales") 
+  labs(x= "Estrato Socioecon?mico", y ="Ingresos Totales") 
 
 
 box_plot_boxcox<- ggplot(data=Base_var , mapping = aes(as.factor(estrato1) , ingtot_boxcox)) + 
@@ -235,7 +239,7 @@ box_plot_boxcox <- box_plot_boxcox +
   scale_color_manual(values = c("0"="red" , "1"="blue") ,
                      label = c("0"="Hombre" , "1"="Mujer") , 
                      name = "Sexo") +
-  labs(x= "Estrato Socioecon髆ico", y ="Ingresos Totales (boxcox)") 
+  labs(x= "Estrato Socioecon?mico", y ="Ingresos Totales (boxcox)") 
 
 box_plot_boxcox
 
@@ -247,12 +251,12 @@ graph2 <- ggplot(data = Base_var ,
   scale_color_manual(values = c("0"="cadetblue3" , "1"="coral") ,
                      label = c("0"="Informal" , "1"="Formal") , 
                      name = "Formal") +
-    labs(x = "Edad", y = "Ingresos Totales")
+  labs(x = "Edad", y = "Ingresos Totales")
 
 graph2
 
 graph2_boxcox <- ggplot(data = Base_var , 
-                 mapping = aes(x = age , y = ingtot_boxcox , group=as.factor(formal))) +
+                        mapping = aes(x = age , y = ingtot_boxcox , group=as.factor(formal))) +
   geom_point(aes(colour=as.factor(formal))) +
   scale_color_manual(values = c("0"="cadetblue3" , "1"="coral") ,
                      label = c("0"="Informal" , "1"="Formal") , 
@@ -276,7 +280,7 @@ summ(model_income)
 
 ##  OLS Age-earnings model - Con trasformaci贸n boxcox
 model_income_boxcox<-lm(ingtot_boxcox~age + age_2, 
-                 data= Base_var)
+                        data= Base_var)
 summ(model_income_boxcox)
 
 #Comparar modelos
@@ -315,7 +319,7 @@ p_load(boot)
 R<-1000
 fun<-function(Base_var,index){
   coef(lm(ingtot~age + age_2, data= Base_var, subset = index))
-  }
+}
 boot(Base_var, fun, R)
 ## Edad optima
 b1<-model_income$coefficients[2]
@@ -330,7 +334,7 @@ boot(Base_var, fun, R)
 ## Edad optima
 b1_boxcox<-model_income_boxcox$coefficients[2]
 model_income$
-b2_boxcox<-model_income_boxcox$coefficients[3]
+  b2_boxcox<-model_income_boxcox$coefficients[3]
 edad_optima_boxcox<--(b1_boxcox/(2*b2_boxcox))
 
 edad_optima
@@ -423,7 +427,7 @@ ggarrange(g1, g_female_p, g_male_p, nrow = 1, ncol = 3)
 ####----Equal Pay for Equal Work?-----###
 #Modelo unconditional earnings gap con controles
 model_controls<-lm(log_income~female + 
-                          formal + age + age_2 + estrato1 
+                     formal + age + age_2 + estrato1 
                    + maxEducLevel + p6426, data= Base_var)
 summ(model_controls)
 stargazer(model_controls, type = "text")
@@ -433,7 +437,7 @@ stargazer(model_controls, type = "text")
 ##Estimaci贸n del modelo con los residuales
 #Modelo sin incluir variable de interes
 y_controles<-lm(log_income~ formal + age + age_2 + estrato1 
-                   + maxEducLevel + p6426, data= Base_var)
+                + maxEducLevel + p6426, data= Base_var)
 summ(y_controles)
 
 Base_var = Base_var %>% 
@@ -442,7 +446,7 @@ Base_var = Base_var %>%
 class(Base_var$femalenum)
 
 female_controles<-lm(femalenum~ formal + age + age_2 + estrato1 
-                    + maxEducLevel + p6426, data= Base_var)
+                     + maxEducLevel + p6426, data= Base_var)
 summ(female_controles)
 
 Base_var$res_y= y_controles$residuals
@@ -473,7 +477,7 @@ mean(train$ingtot)
 ##Estimar los modelos anteriores
 ##1. Age
 model_ing_train<-lm(ingtot~age + age_2, 
-                 data= train)
+                    data= train)
 summ(model_ing_train)
 
 ##2. Female
@@ -482,30 +486,90 @@ summ(model_ing_fem_train)
 
 ##3. Female and controls
 model_cont_train<-lm(log_income~female + 
-                     formal + age + age_2 + estrato1 
-                   + maxEducLevel + p6426, data= train)
+                       formal + age + age_2 + estrato1 
+                     + maxEducLevel + p6426, data= train)
 summ(model_cont_train)
 
 stargazer(model_ing_train, model_ing_fem_train, model_cont_train , type = "text")
 
 ##5 models 
-##1
 
-##2
+##1_Educaci贸n y experiencia
+train$experiencia_2<-train$p6426^2
+model_1_train<-lm(log_income~ maxEducLevel + p6426 + experiencia_2, 
+                     data= train)
+summ(model_1_train)
+stargazer(model_1_train , type = "text")
 
-##3
+##2_Horas de trabajo y segundo trabajo (p7040)
+model_2_train<-lm(ingtot_boxcox ~ hoursWorkUsual + p7040, 
+data= train)
+summ(model_2_train)
+stargazer(model_2_train , type = "text")
 
-##4
+##3_Sexo,Cuenta propia e informal
+model_3_train<-lm(ingtot_boxcox ~ sex + cuentaPropia + informal, 
+                  data= train)
+summ(model_3_train)
+stargazer(model_3_train , type = "text")
 
-##5
+##4 Microempresa, horas trabajadas y experiencia
+model_4_train<-lm(log_income~ microEmpresa + sizeFirm + hoursWorkUsual + p6426, 
+data= train)
+summ(model_4_train)
+stargazer(model_4_train , type = "text")
+
+##5 Age, college*sex y relab
+model_5_train<-lm(ingtot_boxcox~ age + college + sex + (college*sex) , 
+                  data= train)
+summ(model_5_train)
+stargazer(model_5_train , type = "text")
 
 
 ##Reportar y comparar el error medio de predicci贸n de los 3 modelos
 
+residuals1<-mean(model_ing_train$residuals)
+residuals2<-mean(model_ing_fem_train$residuals)
+residuals3<-mean(model_cont_train$residuals)
+residuals4<-mean(model_1_train$residuals)
+residuals5<-mean(model_2_train$residuals)
+residuals6<-mean(model_3_train$residuals)
+residuals7<-mean(model_4_train$residuals)
+residuals8<-mean(model_5_train$residuals)
+
+table1<-rbind(residuals1,residuals2, residuals3, residuals4, residuals5, residuals6, residuals7, residuals8)
+colnames(table1) <- c("value")
+min(table1) ##Lowest average prediction error_ modelo_1_train (Modelo de mincer educaci贸n y experiencia)
 
 ## Mejor modelo (lowest average prediction error)
 ##Compute the leverage statistic for each observation in the test sample
+library(dplyr)
+test$experiencia_2<-test$p6426^2
 
+Coefs_leverage<-c(rep(0, 466))
+Coefs_leverage
+
+matriz<-diag(466)
+
+test_mat<-cbind(test,matriz)
+colnames(test_mat)
+
+for (i in 37:503){
+    i<-37
+    #a<-paste0("...",i)
+    a<-as.factor(test_mat[ ,i:i])
+reg_test_1<-lm(log_income~ maxEducLevel + p6426 + experiencia_2 + a , 
+                 data= test_mat)
+reg_test_2<-lm(log_income~ maxEducLevel + p6426 + experiencia_2,test_mat)$residuals
+reg_test_3 <-lm(a~ maxEducLevel + p6426 + experiencia_2,test_mat)$residuals
+reg_test_leverage<-lm(reg_test_2~reg_test_3 )
+
+b2<-reg_test_leverage$coefficients[2]
+Coefs_leverage<-rbind(Coefs_leverage,b2)
+}
+
+reg_test_1<-lm(log_income~ maxEducLevel + p6426 + experiencia_2 + ...37, 
+               data= test_mat)
 
 ##Validaci贸n cruzada 
 
