@@ -293,7 +293,7 @@ Base_var$prediccion1<-predict(model_income)
 Base_var$prediccion1_boxcox<-predict(model_income_boxcox)
 
 ########
-#Graficas predicci�n y valor observado
+#Graficas predicci?n y valor observado
 
 cor(Base_var$ingtot,Base_var$prediccion1)
 ggplot(Base_var, aes(x = prediccion1, y = ingtot)) +
@@ -425,6 +425,46 @@ g_male_p<-ggplot(Base_gender_male, aes(x = age, y = male_pred)) + geom_point(col
 ggarrange(g1, g_female_p, g_male_p, nrow = 1, ncol = 3)
 
 ####----Equal Pay for Equal Work?-----###
+# Es complicado encontrar una variable que muestre cuántos años ha trabajado una persona en realidad.
+#Por ello, en la literatura se ha utilizado como proxy de la experiencia la experiencia potencial.
+#Esta nace de restarle a la edad de la persona los años que ha estudiado y, 
+#además, cinco (5) años -pues en sus años de primera infancia ni estudió ni trabajó.
+#p6210 = ¿Cuál es el nivel educativo más alto alcanzado por .... y el último año o grado
+#mxEducLevel = 	max. education level attained
+
+Base_var<- Base_var %>% mutate(maxEducLevel_years = ifelse(maxEducLevel==1, 0,
+                                                           ifelse(maxEducLevel==2, 1,
+                                                                  ifelse(maxEducLevel==3, 4, 
+                                                                         ifelse(maxEducLevel==4, 5,
+                                                                                ifelse(maxEducLevel==5, 10,
+                                                                                       ifelse(maxEducLevel==6, 11,
+                                                                                              ifelse(maxEducLevel==7, 15,
+                                                                                                     ifelse(maxEducLevel==9, NA, NA)))))))))  
+
+Base_var<- Base_var %>% mutate(p6210_years = ifelse(p6210==1, 0,
+                                                    ifelse(p6210==2, 1,
+                                                           ifelse(p6210==3, 5, 
+                                                                  ifelse(p6210==4, 9,
+                                                                         ifelse(p6210==5, 13,
+                                                                                ifelse(p6210==6, 19,
+                                                                                       ifelse(p6210==9, 0,0))))))))                                                                                         
+
+Base_var<- Base_var %>% mutate(exp_pot_maxedu = age - (maxEducLevel_years + 5))
+Base_var<- Base_var %>% mutate(exp_pot_p6210 = age - (p6210_years + 5))
+Base_var<- Base_var %>% mutate(exp_pot_p6210 = ifelse(exp_pot_p6210>=0,exp_pot_p6210, 0))
+
+a1<-ggplot(Base_var, aes(x = p6210, y = ingtot)) + geom_point()
+a2<-ggplot(Base_var, aes(x = maxEducLevel, y = ingtot)) + geom_point()
+a3<-ggplot(Base_var, aes(x = exp_pot_p6210, y = ingtot)) + geom_point()
+a4<-ggplot(Base_var, aes(x = exp_pot_maxedu, y = ingtot)) + geom_point()
+ggarrange(a1, a2, a3, a4, nrow = 2, ncol = 2)
+
+skim(Base_var$p6210)
+skim(Base_var$maxEducLevel)
+
+#Modelo unconditional earnings gap con controles
+#p6426 = ¿cuanto tiempo lleva ... Trabajando en esta empresa, negocio, industria, oficina
+################################################################
 #Modelo unconditional earnings gap con controles
 model_controls<-lm(log_income~female + 
                      formal + age + age_2 + estrato1 
@@ -570,6 +610,39 @@ Coefs_leverage<-rbind(Coefs_leverage,b2)
 
 reg_test_1<-lm(log_income~ maxEducLevel + p6426 + experiencia_2 + ...37, 
                data= test_mat)
+
+#Sugerencia de Ignacio#############
+GIH<-data.frame(age=runif(30,18,80))
+GIH<- GIH %>% mutate(age2=age^2,
+                     income=rnorm(30,mean=12+0.06*age-0.001*age2))                
+
+for(i in 1:dim(GIH)[1]){
+  #Estimate the regression model using all but the i − th observation
+  reg_1<-lm(income~age+age2,GIH[-i,])
+  #Calculate the prediction error for the i − th observation, i.e. (yi − yˆi)
+  y_hat<-predict(reg_1,newdata=GIH[i,])
+  u<-(GIH[i,]$income-y_hat)^2
+}
+
+
+
+##Validación cruzada 
+
+##LOOCV
+
+##### Sugerencia de Karen
+#LOOCV
+error_LOOCV <- c()
+for(i in 1:dim(entrenamiento)[1]){
+  modelo  <- lm(lnprice~rooms+(bathrooms*bedrooms)+factor(property_type)+surface_total+surface_covered+(lat*lon)+hurto+arealic,data=entrenamiento[-i,])
+  error_LOOCV[i] <- entrenamiento$lnprice[i]-predict(modelo,entrenamiento[i,])
+  print(i)
+}
+mean(error_LOOCV*error_LOOCV)
+h <- hatvalues(m2)
+
+
+
 
 ##Validación cruzada 
 
