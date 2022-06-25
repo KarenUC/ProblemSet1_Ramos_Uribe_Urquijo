@@ -576,7 +576,7 @@ summ(model_4_train)
 stargazer(model_4_train , type = "text")
 
 ##5 Age, college*sex y relab
-model_5_train<-lm(ingtot_boxcox~ age + college + sex + (college*sex) , 
+model_5_train<-lm(ingtot_boxcox~ age + college + sex + college:sex , 
                   data= train)
 summ(model_5_train)
 stargazer(model_5_train , type = "text")
@@ -626,6 +626,9 @@ min(MSE_2)
 #Pregunta: se deben comparar los MSE contra la misma variable dependiente?
 ## ingtot? ingtot_boxcox? log_income?
 
+
+
+########################################################################################################################################
 ## Mejor modelo (lowest average prediction error)
 ##Compute the leverage statistic for each observation in the test sample
 library(dplyr)
@@ -669,9 +672,48 @@ for(i in 1:dim(GIH)[1]){
   u<-(GIH[i,]$income-y_hat)^2
 }
 
-### ----- K-fold Validación cruzada ------#####
 
-##LOOCV
+########################################################################################################################################
+
+### ----- K-fold Validación cruzada ------#####
+p_load(caret)
+
+modelcte1 <- train(ingtot~. , 
+                data = Base_var, trControl = trainControl(method = "cv", number = 5), 
+                method = "lm")
+
+Base_var$experiencia_2<-Base_var$p6426^2
+model1 <- train(log_income~ maxEducLevel + p6426 + experiencia_2, 
+                data = Base_var, trControl = trainControl(method = "cv", number = 5), 
+                method = "lm")
+
+
+model2 <- train(ingtot_boxcox ~ hoursWorkUsual + p7040, 
+                data = Base_var, trControl = trainControl(method = "cv", number = 5), 
+                method = "lm")
+
+model3 <- train(ingtot_boxcox ~ sex + cuentaPropia + informal, 
+                data = Base_var, trControl = trainControl(method = "cv", number = 5), 
+                method = "lm")
+
+model4 <- train(log_income ~ microEmpresa + sizeFirm + hoursWorkUsual + p6426, 
+                data = Base_var, trControl = trainControl(method = "cv", number = 5), 
+                method = "lm")
+
+
+model5 <- train(ingtot_boxcox~ age + college + sex + college:sex, 
+                data = Base_var, trControl = trainControl(method = "cv", number = 5), 
+                method = "lm")
+
+kfold_RMSE<-rbind(model1$results,model2$results,model3$results,model4$results,model5$results)
+kfold_RMSE$name<-rbind("model1","model2","model3", "model4", "model5")
+kfold_RMSE
+
+
+
+##########################################################################################################################################################################
+
+### ----- LOOCV ------#####
 
 ##### Sugerencia de Karen
 #LOOCV
