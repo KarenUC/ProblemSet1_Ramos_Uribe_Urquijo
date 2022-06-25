@@ -709,7 +709,7 @@ kfold_RMSE<-rbind(model1$results,model2$results,model3$results,model4$results,mo
 kfold_RMSE$name<-rbind("model1","model2","model3", "model4", "model5")
 kfold_RMSE
 
-
+ggplot(kfold_RMSE, aes(x = name, y = RMSE)) + geom_line()+ geom_point()
 
 ##########################################################################################################################################################################
 
@@ -719,7 +719,9 @@ kfold_RMSE
 #LOOCV
 error_LOOCV <- c()
 for(i in 1:dim(entrenamiento)[1]){
-  modelo  <- lm(lnprice~rooms+(bathrooms*bedrooms)+factor(property_type)+surface_total+surface_covered+(lat*lon)+hurto+arealic,data=entrenamiento[-i,])
+  modelo  <- lm(lnprice~rooms+(bathrooms*bedrooms)
+                +factor(property_type)+surface_total+surface_covered+(lat*lon)
+                +hurto+arealic,data=entrenamiento[-i,])
   error_LOOCV[i] <- entrenamiento$lnprice[i]-predict(modelo,entrenamiento[i,])
   print(i)
 }
