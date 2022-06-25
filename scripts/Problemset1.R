@@ -314,7 +314,7 @@ plot2 <- ggplot(Base_var,                                     # Draw plot using 
               slope = 1,
               color = "green",
               size = 2) +
-  labs(x= "Ingreso Total Observado - Transofrmaci�n Box-cox", y= "Ingreso Total Predicho - Transformaci�n Box-cox"))
+  labs(x= "Ingreso Total Observado - Transofrmaci?n Box-cox", y= "Ingreso Total Predicho - Transformaci?n Box-cox"))
 
 ggarrange(plot1, plot2)
 
@@ -364,12 +364,11 @@ fun2<-function(Base_var,index){
 boot(Base_var, fun, R)
 ## Edad optima
 b1_boxcox<-model_income_boxcox$coefficients[2]
-model_income$
-  b2_boxcox<-model_income_boxcox$coefficients[3]
+b2_boxcox<-model_income_boxcox$coefficients[3]
 edad_optima_boxcox<--(b1_boxcox/(2*b2_boxcox))
 
 edad_optima
-edad_optima_boxcox
+edad_optima_boxcox#44
 
 #Intervalos de confianza
 CI_age<-confint(model_income, level=0.95)
@@ -456,47 +455,12 @@ g_male_p<-ggplot(Base_gender_male, aes(x = age, y = male_pred)) + geom_point(col
 ggarrange(g1, g_female_p, g_male_p, nrow = 1, ncol = 3)
 
 ####----Equal Pay for Equal Work?-----###
-# Es complicado encontrar una variable que muestre cuántos años ha trabajado una persona en realidad.
-#Por ello, en la literatura se ha utilizado como proxy de la experiencia la experiencia potencial.
-#Esta nace de restarle a la edad de la persona los años que ha estudiado y, 
-#además, cinco (5) años -pues en sus años de primera infancia ni estudió ni trabajó.
-#p6210 = ¿Cuál es el nivel educativo más alto alcanzado por .... y el último año o grado
-#maxEducLevel = 	max. education level attained
-
-Base_var<- Base_var %>% mutate(maxEducLevel_years = ifelse(maxEducLevel==1, 0,
-                                                           ifelse(maxEducLevel==2, 1,
-                                                                  ifelse(maxEducLevel==3, 4, 
-                                                                         ifelse(maxEducLevel==4, 5,
-                                                                                ifelse(maxEducLevel==5, 10,
-                                                                                       ifelse(maxEducLevel==6, 11,
-                                                                                              ifelse(maxEducLevel==7, 15,
-                                                                                                     ifelse(maxEducLevel==9, NA, NA)))))))))  
-
-Base_var<- Base_var %>% mutate(p6210_years = ifelse(p6210==1, 0,
-                                                    ifelse(p6210==2, 1,
-                                                           ifelse(p6210==3, 5, 
-                                                                  ifelse(p6210==4, 9,
-                                                                         ifelse(p6210==5, 13,
-                                                                                ifelse(p6210==6, 19,
-                                                                                       ifelse(p6210==9, 0,0))))))))                                                                                         
-
-Base_var<- Base_var %>% mutate(exp_pot_maxedu = age - (maxEducLevel_years + 5))
-Base_var<- Base_var %>% mutate(exp_pot_p6210 = age - (p6210_years + 5))
-Base_var<- Base_var %>% mutate(exp_pot_p6210 = ifelse(exp_pot_p6210>=0,exp_pot_p6210, 0))
-
-a1<-ggplot(Base_var, aes(x = p6210, y = ingtot)) + geom_point()
-a2<-ggplot(Base_var, aes(x = maxEducLevel, y = ingtot)) + geom_point()
-a3<-ggplot(Base_var, aes(x = exp_pot_p6210, y = ingtot)) + geom_point()
-a4<-ggplot(Base_var, aes(x = exp_pot_maxedu, y = ingtot)) + geom_point()
-ggarrange(a1, a2, a3, a4, nrow = 2, ncol = 2)
-
-skim(Base_var$p6210)
-skim(Base_var$maxEducLevel)
 
 #Modelo unconditional earnings gap con controles
 #p6426 = ¿cuanto tiempo lleva ... Trabajando en esta empresa, negocio, industria, oficina
 ################################################################
 #Modelo unconditional earnings gap con controles
+
 model_controls<-lm(log_income~female + 
                      formal + age + age_2 + estrato1 
                    + maxEducLevel + p6426, data= Base_var)
@@ -530,6 +494,46 @@ stargazer(model_controls, reg_final, type = "text")
 stargazer(model_controls, reg_final, type = "latex")
 
 ###Falta la interpretación!!!!!
+###############
+##### Transformación para encontrar experiencia potencial
+# Es complicado encontrar una variable que muestre cuántos años ha trabajado una persona en realidad.
+#Por ello, en la literatura se ha utilizado como proxy de la experiencia la experiencia potencial.
+#Esta nace de restarle a la edad de la persona los años que ha estudiado y, 
+#además, cinco (5) años -pues en sus años de primera infancia ni estudió ni trabajó.
+#p6210 = ¿Cuál es el nivel educativo más alto alcanzado por .... y el último año o grado
+#maxEducLevel = 	max. education level attained
+
+Base_var<- Base_var %>% mutate(maxEducLevel_years = ifelse(maxEducLevel==1, 0,
+                                                           ifelse(maxEducLevel==2, 1,
+                                                                  ifelse(maxEducLevel==3, 4, 
+                                                                         ifelse(maxEducLevel==4, 5,
+                                                                                ifelse(maxEducLevel==5, 10,
+                                                                                       ifelse(maxEducLevel==6, 11,
+                                                                                              ifelse(maxEducLevel==7, 15,
+                                                                                                     ifelse(maxEducLevel==9, NA, NA)))))))))  
+
+Base_var<- Base_var %>% mutate(p6210_years = ifelse(p6210==1, 0,
+                                                    ifelse(p6210==2, 1,
+                                                           ifelse(p6210==3, 5, 
+                                                                  ifelse(p6210==4, 9,
+                                                                         ifelse(p6210==5, 13,
+                                                                                ifelse(p6210==6, 19,
+                                                                                       ifelse(p6210==9, 0,0))))))))                                                                                         
+
+Base_var<- Base_var %>% mutate(exp_pot_maxedu = age - maxEducLevel_years - 5)
+Base_var<- Base_var %>% mutate(exp_pot_p6210 = age - p6210_years - 5)
+Base_var<- Base_var %>% mutate(exp_pot_p6210 = ifelse(exp_pot_p6210>=0,exp_pot_p6210, 0))
+
+a1<-ggplot(Base_var, aes(x = p6210, y = ingtot)) + geom_point()
+a2<-ggplot(Base_var, aes(x = maxEducLevel, y = ingtot)) + geom_point()
+a3<-ggplot(Base_var, aes(x = exp_pot_p6210, y = ingtot)) + geom_point()
+a4<-ggplot(Base_var, aes(x = exp_pot_maxedu, y = ingtot)) + geom_point()
+ggarrange(a1, a2, a3, a4, nrow = 2, ncol = 2)
+
+skim(Base_var$p6210)
+skim(Base_var$maxEducLevel)
+
+Base_var$exp_pot_p6210_2 <- Base_var$exp_pot_p6210^2
 
 #### ----- 5.Predicting Earnigns 
 set.seed(10101)
@@ -579,39 +583,55 @@ MSE_logincome_fem_controls<-with(test,mean((ingtot-model_cont_p)^2))
 MSE<-rbind(MSE_ingtot_cte, MSE_ingtot_age, MSE_logincome_fem, MSE_logincome_fem_controls)
 min(MSE)
 #####################
-##5 models 
+### ----- 5 models ----#######
 
 ##1_Educación y experiencia
 train$experiencia_2<-train$p6426^2
-model_1_train<-lm(log_income~ maxEducLevel + p6426 + experiencia_2, 
+model_1_train<-lm(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2, 
                      data= train)
 summ(model_1_train)
 stargazer(model_1_train , type = "text")
 
 ##2_Horas de trabajo y segundo trabajo (p7040)
-model_2_train<-lm(ingtot_boxcox ~ hoursWorkUsual + p7040, 
+train<-train %>% mutate(dos_trabajo = ifelse(p7040==2, 0,1))
+
+model_2_train<-lm(ingtot_boxcox ~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
+                  +hoursWorkUsual + dos_trabajo, 
 data= train)
 summ(model_2_train)
 stargazer(model_2_train , type = "text")
 
 ##3_Sexo,Cuenta propia e informal
-model_3_train<-lm(ingtot_boxcox ~ sex + cuentaPropia + informal, 
+model_3_train<-lm(ingtot_boxcox ~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
+                  +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal, 
                   data= train)
 summ(model_3_train)
 stargazer(model_3_train , type = "text")
 
-##4 Microempresa, horas trabajadas y experiencia
-model_4_train<-lm(log_income~ microEmpresa + sizeFirm + hoursWorkUsual + p6426, 
+##4 Microempresa, tamaño de la firma, relación laboral
+model_4_train<-lm(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
+                  +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
+                  +microEmpresa + sizeFirm + relab, 
 data= train)
 summ(model_4_train)
 stargazer(model_4_train , type = "text")
 
-##5 Age, college*sex y relab
-model_5_train<-lm(ingtot_boxcox~ age + college + sex + college:sex , 
+##5 Age, college*sex y relab, edad
+model_5_train<-lm(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
+                  +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
+                  +microEmpresa + sizeFirm + relab+ age + female + college:female , 
                   data= train)
+
 summ(model_5_train)
 stargazer(model_5_train , type = "text")
 
+stargazer(model_1_train,model_2_train,model_3_train,model_4_train,model_5_train, type = "text")
+#table(Base_var$sizeFirm)
+#levels(Base_var$oficio)
+#lm(ingtot_boxcox~relab, train)
+#lm(ingtot_boxcox~sizeFirm, train)
+#levels(train$relab)
+#levels(train$sizeFirm)
 
 ##Reportar y comparar el error medio de predicción de los 8 modelos
 
@@ -628,36 +648,31 @@ table1<-rbind(residuals1,residuals2, residuals3, residuals4, residuals5, residua
 colnames(table1) <- c("value")
 min(table1) ##Lowest average prediction error_ modelo_1_train (Modelo de mincer educación y experiencia)
 
-###### Una forma como Jurquijo cree que se puede hacer es 
-#comparar el MSE de los 8 modelos en el test sample
-test$experiencia_2<-test$p6426^2
+###### Discutir modelos en TEST SAMPLE
+test<-test %>% mutate(dos_trabajo = ifelse(p7040==2, 0,1))
 test$model_1_p<-predict(model_1_train,newdata = test)
-MSE_model_1<-with(test,mean((ingtot-model_1_p)^2))
+MSE_model_1<-with(test,mean((ingtot_boxcox-model_1_p)^2))
 
 test$model_2_p<-predict(model_2_train,newdata = test)
-MSE_model_2<-with(test,mean((ingtot-model_2_p)^2))
+MSE_model_2<-with(test,mean((ingtot_boxcox-model_2_p)^2))
 
 test$model_3_p<-predict(model_3_train,newdata = test)
-MSE_model_3<-with(test,mean((ingtot-model_3_p)^2))
+MSE_model_3<-with(test,mean((ingtot_boxcox-model_3_p)^2))
 
 test$model_4_p<-predict(model_4_train,newdata = test)
-MSE_model_4<-with(test,mean((ingtot-model_4_p)^2))
+MSE_model_4<-with(test,mean((ingtot_boxcox-model_4_p)^2))
 
 test$model_5_p<-predict(model_5_train,newdata = test)
-MSE_model_5<-with(test,mean((ingtot-model_5_p)^2))
+MSE_model_5<-with(test,mean((ingtot_boxcox-model_5_p)^2))
 
 MSE<-rbind(MSE_ingtot_cte, MSE_ingtot_age, MSE_logincome_fem, MSE_logincome_fem_controls,
            MSE_model_1, MSE_model_2, MSE_model_3, MSE_model_4, MSE_model_5)
 min(MSE)
 
-MSE_2<-rbind(MSE_logincome_fem, MSE_logincome_fem_controls,
-           MSE_model_1, MSE_model_2, MSE_model_3, MSE_model_4, MSE_model_5)
+MSE_2<-rbind(MSE_model_1, MSE_model_2, MSE_model_3, MSE_model_4, MSE_model_5)
 min(MSE_2)
+
 ####
-#Pregunta: se deben comparar los MSE contra la misma variable dependiente?
-## ingtot? ingtot_boxcox? log_income?
-
-
 
 ########################################################################################################################################
 ## Mejor modelo (lowest average prediction error)
@@ -709,36 +724,47 @@ for(i in 1:dim(GIH)[1]){
 ### ----- K-fold Validación cruzada ------#####
 p_load(caret)
 
-modelcte1 <- train(ingtot~. , 
-                data = Base_var, trControl = trainControl(method = "cv", number = 5), 
-                method = "lm")
-
-Base_var$experiencia_2<-Base_var$p6426^2
-model1 <- train(log_income~ maxEducLevel + p6426 + experiencia_2, 
-                data = Base_var, trControl = trainControl(method = "cv", number = 5), 
-                method = "lm")
+modelcte1<-lm(ingtot_boxcox~1,data=train)
+summary(modelcte1)
+stargazer(modelcte1, type = "text")
+coef(modelcte1)
+mean(train$ingtot_boxcox)
+RMSE_modelcte1<-with(test,mean((ingtot_boxcox-coef(modelcte1))^2))
 
 
-model2 <- train(ingtot_boxcox ~ hoursWorkUsual + p7040, 
-                data = Base_var, trControl = trainControl(method = "cv", number = 5), 
-                method = "lm")
+Base_var<-Base_var %>% mutate(dos_trabajo = ifelse(p7040==2, 0,1))
 
-model3 <- train(ingtot_boxcox ~ sex + cuentaPropia + informal, 
-                data = Base_var, trControl = trainControl(method = "cv", number = 5), 
-                method = "lm")
-
-model4 <- train(log_income ~ microEmpresa + sizeFirm + hoursWorkUsual + p6426, 
+model1 <- train(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2, 
                 data = Base_var, trControl = trainControl(method = "cv", number = 5), 
                 method = "lm")
 
 
-model5 <- train(ingtot_boxcox~ age + college + sex + college:sex, 
+model2 <- train(ingtot_boxcox ~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
+                +hoursWorkUsual + dos_trabajo,
+                data = Base_var, trControl = trainControl(method = "cv", number = 5), 
+                method = "lm")
+
+model3 <- train(ingtot_boxcox ~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
+                +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal, 
+                data = Base_var, trControl = trainControl(method = "cv", number = 5), 
+                method = "lm")
+
+model4 <- train(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
+                +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
+                +microEmpresa + sizeFirm + relab,
+                data = Base_var, trControl = trainControl(method = "cv", number = 5), 
+                method = "lm")
+
+
+model5 <- train(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
+                +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
+                +microEmpresa + sizeFirm + relab+ age + female + college:female ,
                 data = Base_var, trControl = trainControl(method = "cv", number = 5), 
                 method = "lm")
 
 kfold_RMSE<-rbind(model1$results,model2$results,model3$results,model4$results,model5$results)
 kfold_RMSE$name<-rbind("model1","model2","model3", "model4", "model5")
-kfold_RMSE
+
 
 ggplot(kfold_RMSE, aes(x = name, y = RMSE)) + geom_line()+ geom_point()
 
