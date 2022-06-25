@@ -288,6 +288,37 @@ stargazer(model_income, model_income_boxcox, type = "text")
 
 ### Qu√© tan bueno es el fit del modelo?
 #El fit es malo seg√∫n Rcuadrado - Revisar argumento
+
+
+# Guardar los predichos del modelo en datos
+Base_var$nuevo_pred <- model_income$fitted.values
+# Guardar los residuos
+Base_var$residuos <- model_income$residuals 
+
+plot1 <- ggplot(Base_var,                                     # Draw plot using ggplot2 package
+       aes(x = Base_var$nuevo_pred,
+           y = Base_var$ingtot)) +
+  geom_point(colour= "gray") +
+  geom_abline(intercept = 0,
+              slope = 1,
+              color = "green",
+              size = 2) +
+  labs(x= "Ingreso Total Observado", y= "Ingreso Total Predicho")
+
+
+plot2 <- ggplot(Base_var,                                     # Draw plot using ggplot2 package
+       aes(x = Base_var$ingtot_boxcox,
+           y = predict(model_income_boxcox)) +
+  geom_point(colour= "gray") +
+  geom_abline(intercept = 0,
+              slope = 1,
+              color = "green",
+              size = 2) +
+  labs(x= "Ingreso Total Observado - TransofrmaciÛn Box-cox", y= "Ingreso Total Predicho - TransformaciÛn Box-cox"))
+
+ggarrange(plot1, plot2)
+
+
 #Plot the predicted age-earnings profile implied by the above equation.
 Base_var$prediccion1<-predict(model_income)
 Base_var$prediccion1_boxcox<-predict(model_income_boxcox)
