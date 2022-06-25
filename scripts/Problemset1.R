@@ -430,7 +430,7 @@ ggarrange(g1, g_female_p, g_male_p, nrow = 1, ncol = 3)
 #Esta nace de restarle a la edad de la persona los años que ha estudiado y, 
 #además, cinco (5) años -pues en sus años de primera infancia ni estudió ni trabajó.
 #p6210 = ¿Cuál es el nivel educativo más alto alcanzado por .... y el último año o grado
-#mxEducLevel = 	max. education level attained
+#maxEducLevel = 	max. education level attained
 
 Base_var<- Base_var %>% mutate(maxEducLevel_years = ifelse(maxEducLevel==1, 0,
                                                            ifelse(maxEducLevel==2, 1,
@@ -532,6 +532,22 @@ summ(model_cont_train)
 
 stargazer(model_ing_train, model_ing_fem_train, model_cont_train , type = "text")
 
+#################### Discutir modelos
+test$model_cte_p<-predict(model_cte,newdata = test)
+MSE_ingtot_cte<-with(test,mean((ingtot-model_cte_p)^2))
+
+test$model_ing_p<-predict(model_ing_train,newdata = test)
+MSE_ingtot_age<-with(test,mean((ingtot-model_ing_p)^2))
+
+test$model_ing_fem_p<-predict(model_ing_fem_train,newdata = test)
+MSE_logincome_fem<-with(test,mean((ingtot-model_ing_fem_p)^2))
+
+test$model_cont_p<-predict(model_cont_train,newdata = test)
+MSE_logincome_fem_controls<-with(test,mean((ingtot-model_cont_p)^2))
+
+MSE<-rbind(MSE_ingtot_cte, MSE_ingtot_age, MSE_logincome_fem, MSE_logincome_fem_controls)
+min(MSE)
+#####################
 ##5 models 
 
 ##1_Educación y experiencia
@@ -566,7 +582,7 @@ summ(model_5_train)
 stargazer(model_5_train , type = "text")
 
 
-##Reportar y comparar el error medio de predicción de los 3 modelos
+##Reportar y comparar el error medio de predicción de los 8 modelos
 
 residuals1<-mean(model_ing_train$residuals)
 residuals2<-mean(model_ing_fem_train$residuals)
@@ -580,6 +596,35 @@ residuals8<-mean(model_5_train$residuals)
 table1<-rbind(residuals1,residuals2, residuals3, residuals4, residuals5, residuals6, residuals7, residuals8)
 colnames(table1) <- c("value")
 min(table1) ##Lowest average prediction error_ modelo_1_train (Modelo de mincer educación y experiencia)
+
+###### Una forma como Jurquijo cree que se puede hacer es 
+#comparar el MSE de los 8 modelos en el test sample
+test$experiencia_2<-test$p6426^2
+test$model_1_p<-predict(model_1_train,newdata = test)
+MSE_model_1<-with(test,mean((ingtot-model_1_p)^2))
+
+test$model_2_p<-predict(model_2_train,newdata = test)
+MSE_model_2<-with(test,mean((ingtot-model_2_p)^2))
+
+test$model_3_p<-predict(model_3_train,newdata = test)
+MSE_model_3<-with(test,mean((ingtot-model_3_p)^2))
+
+test$model_4_p<-predict(model_4_train,newdata = test)
+MSE_model_4<-with(test,mean((ingtot-model_4_p)^2))
+
+test$model_5_p<-predict(model_5_train,newdata = test)
+MSE_model_5<-with(test,mean((ingtot-model_5_p)^2))
+
+MSE<-rbind(MSE_ingtot_cte, MSE_ingtot_age, MSE_logincome_fem, MSE_logincome_fem_controls,
+           MSE_model_1, MSE_model_2, MSE_model_3, MSE_model_4, MSE_model_5)
+min(MSE)
+
+MSE_2<-rbind(MSE_logincome_fem, MSE_logincome_fem_controls,
+           MSE_model_1, MSE_model_2, MSE_model_3, MSE_model_4, MSE_model_5)
+min(MSE_2)
+####
+#Pregunta: se deben comparar los MSE contra la misma variable dependiente?
+## ingtot? ingtot_boxcox? log_income?
 
 ## Mejor modelo (lowest average prediction error)
 ##Compute the leverage statistic for each observation in the test sample
@@ -624,9 +669,7 @@ for(i in 1:dim(GIH)[1]){
   u<-(GIH[i,]$income-y_hat)^2
 }
 
-
-
-##Validación cruzada 
+### ----- K-fold Validación cruzada ------#####
 
 ##LOOCV
 
