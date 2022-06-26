@@ -545,9 +545,21 @@ test  <- Base_var[-sample, ]
 ##Estimar modelo solo incluyendo la constante - Benchmark
 model_cte<-lm(ingtot~1,data=train)
 summary(model_cte)
-stargazer(model_cte, type = "text")
 coef(model_cte)
 mean(train$ingtot)
+
+modelcte1<-lm(ingtot_boxcox~1,data=train)
+summary(modelcte1)
+coef(modelcte1)
+mean(train$ingtot_boxcox)
+
+modelcte2<-lm(log_income~1,data=train)
+summary(modelcte2)
+coef(modelcte2)
+mean(train$log_income)
+
+stargazer(model_cte,modelcte1,modelcte2, type = "text")
+stargazer(model_cte,modelcte1,modelcte2)
 
 ##Estimar los modelos anteriores
 ##1. Age
@@ -566,6 +578,8 @@ model_cont_train<-lm(log_income~female +
 summ(model_cont_train)
 
 stargazer(model_ing_train, model_ing_fem_train, model_cont_train , type = "text")
+stargazer(model_ing_train, model_ing_fem_train, model_cont_train)
+
 
 #################### Discutir modelos
 test$model_cte_p<-predict(model_cte,newdata = test)
@@ -724,11 +738,7 @@ for(i in 1:dim(GIH)[1]){
 ### ----- K-fold Validación cruzada ------#####
 p_load(caret)
 
-modelcte1<-lm(ingtot_boxcox~1,data=train)
-summary(modelcte1)
-stargazer(modelcte1, type = "text")
-coef(modelcte1)
-mean(train$ingtot_boxcox)
+
 RMSE_modelcte1<-with(test,mean((ingtot_boxcox-coef(modelcte1))^2))
 
 
