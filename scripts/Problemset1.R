@@ -601,7 +601,7 @@ min(MSE)
 
 ##1_Educación y experiencia
 train$experiencia_2<-train$p6426^2
-model_1_train<-lm(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2, 
+model_1_train<-lm(ingtot_boxcox~ maxEducLevel_years + exp_pot_p6210 + exp_pot_p6210_2, 
                      data= train)
 summ(model_1_train)
 stargazer(model_1_train , type = "text")
@@ -609,21 +609,21 @@ stargazer(model_1_train , type = "text")
 ##2_Horas de trabajo y segundo trabajo (p7040)
 train<-train %>% mutate(dos_trabajo = ifelse(p7040==2, 0,1))
 
-model_2_train<-lm(ingtot_boxcox ~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
+model_2_train<-lm(ingtot_boxcox ~ maxEducLevel_years + exp_pot_p6210 + exp_pot_p6210_2
                   +hoursWorkUsual + dos_trabajo, 
 data= train)
 summ(model_2_train)
 stargazer(model_2_train , type = "text")
 
 ##3_Sexo,Cuenta propia e informal
-model_3_train<-lm(ingtot_boxcox ~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
+model_3_train<-lm(ingtot_boxcox ~ maxEducLevel_years + exp_pot_p6210 + exp_pot_p6210_2
                   +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal, 
                   data= train)
 summ(model_3_train)
 stargazer(model_3_train , type = "text")
 
 ##4 Microempresa, tamaño de la firma
-model_4_train<-lm(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
+model_4_train<-lm(ingtot_boxcox~ maxEducLevel_years + exp_pot_p6210 + exp_pot_p6210_2
                   +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
                   +microEmpresa + sizeFirm , 
 data= train)
@@ -631,7 +631,7 @@ summ(model_4_train)
 stargazer(model_4_train , type = "text")
 
 ##5 Age, college*sex y relab, edad
-model_5_train<-lm(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
+model_5_train<-lm(ingtot_boxcox~ maxEducLevel_years + exp_pot_p6210 + exp_pot_p6210_2
                   +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
                   +microEmpresa + sizeFirm + age + college:female , 
                   data= train)
@@ -640,7 +640,8 @@ summ(model_5_train)
 stargazer(model_5_train , type = "text")
 
 stargazer(model_1_train,model_2_train,model_3_train,model_4_train,model_5_train, type = "text")
-stargazer(model_1_train,model_2_train,model_3_train,model_4_train,model_5_train)
+stargazer(model_1_train,model_2_train,model_3_train)
+stargazer(model_4_train,model_5_train)
 
 #table(Base_var$sizeFirm)
 #levels(Base_var$oficio)
@@ -663,6 +664,27 @@ residuals8<-mean(model_5_train$residuals)
 table1<-rbind(residuals1,residuals2, residuals3, residuals4, residuals5, residuals6, residuals7, residuals8)
 colnames(table1) <- c("value")
 min(table1) ##Lowest average prediction error_ modelo_1_train (Modelo de mincer educación y experiencia)
+
+###### Discutir modelos en TRAIN SAMPLE
+train$model_1_p<-predict(model_1_train)
+MSE_model_1_t<-with(train,mean((ingtot_boxcox-model_1_p)^2))
+
+train$model_2_p<-predict(model_2_train)
+MSE_model_2_t<-with(train,mean((ingtot_boxcox-model_2_p)^2))
+
+train$model_3_p<-predict(model_3_train)
+MSE_model_3_t<-with(train,mean((ingtot_boxcox-model_3_p)^2))
+
+train$model_4_p<-predict(model_4_train)
+MSE_model_4_t<-with(train,mean((ingtot_boxcox-model_4_p)^2))
+
+train$model_5_p<-predict(model_5_train)
+MSE_model_5_t<-with(train,mean((ingtot_boxcox-model_5_p)^2))
+
+MSE_2_t<-rbind(MSE_model_1_t, MSE_model_2_t, MSE_model_3_t, MSE_model_4_t, MSE_model_5_t)
+View(MSE_2_t)
+min(MSE_2_t)
+stargazer(MSE_2_t)
 
 ###### Discutir modelos en TEST SAMPLE
 test<-test %>% mutate(dos_trabajo = ifelse(p7040==2, 0,1))
@@ -688,6 +710,10 @@ min(MSE)
 MSE_2<-rbind(MSE_model_1, MSE_model_2, MSE_model_3, MSE_model_4, MSE_model_5)
 View(MSE_2)
 min(MSE_2)
+
+MSE_models<-cbind(MSE_2_t,MSE_2)
+colnames(MSE_models)<-c("Train", "Test")
+stargazer(MSE_models)
 
 ####
 
@@ -785,12 +811,18 @@ model6 <- train(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
 
 kfold_RMSE<-rbind(model1$results,model2$results,model3$results,model4$results,model5$results, model6$results)
 kfold_RMSE$name<-rbind("model1","model2","model3", "model4", "model5","model6")
+rownames(kfold_RMSE)<-c("model1","model2","model3", "model4", "model5","model6")
+kfold_RMSE$MSE<-sqrt(kfold_RMSE$RMSE)
+Z1<-ggplot(kfold_RMSE, aes(x = name, y = RMSE)) + geom_line()+ geom_point()+ labs(x = "Modelo")
+Z2<-ggplot(kfold_RMSE, aes(x = name, y = MSE)) + geom_line()+ geom_point() + labs(x = "Modelo")
 
+ggarrange(Z1, Z2, nrow = 1, ncol = 2)
 
-ggplot(kfold_RMSE, aes(x = name, y = RMSE)) + geom_line()+ geom_point()
 View(kfold_RMSE)
-
-ggplot(kfold_RMSE, aes(x = name, y = RMSE)) + geom_line()+ geom_point()
+kfold_RMSE<-kfold_RMSE[,-1]
+kfold_RMSE<-kfold_RMSE[,-7]
+p_load(xtable)
+xtable(kfold_RMSE)
 
 ##########################################################################################################################################################################
 
