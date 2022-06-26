@@ -726,6 +726,12 @@ model_5_test<-lm(ingtot_boxcox~ maxEducLevel_years + exp_pot_p6210 + exp_pot_p62
                  +microEmpresa + sizeFirm + age + college:female , 
                  data= test)
 
+uj_1 <-rstandard (model_5_test) #residuales estandarizados
+hj_1 <- lm.influence(model_5_test)$hat () #leverage statistic
+skim(uj_1)
+skim(hj_1)
+
+##alpha<-u/(1-h)
 alphas <- c()
 for (j in 1:nrow(test)) {
   uj <- model_5_test$residuals[j]
@@ -734,14 +740,12 @@ for (j in 1:nrow(test)) {
   alphas <- c(alphas, alpha)
 }
 
+a_1<-ggplot(test, aes(x = uj_1, y = hj_1)) + geom_point() + labs(x = "Residuales estandarizados)", y = "Leverage (h_j)")
+a_2<-ggplot(test, aes(x = alphas, y = hj_1)) + geom_point() + labs(x = "alphas", y = "Leverage (h_j)")
+a_3<-ggplot(test, aes(x = alphas, y = uj_1)) + geom_point() + labs(x = "alphas", y = "Residuales estandarizados")
+ggarrange(a_1, a_2, a_3, nrow = 1, ncol = 3)
 
-uj_1 <-rstandard (model_5_test) #residuales estandarizados
-hj_1 <- lm.influence(model_5_test)$hat () #
-a_1<-ggplot(test, aes(x = hj_1, y = uj_1)) + geom_point()
-a_1
-max(alphas)
-min(alphas)
-mean(alphas)
+##cuadrante 
 
 
 ########################################################################################################################################
