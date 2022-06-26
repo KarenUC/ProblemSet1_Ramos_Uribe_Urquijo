@@ -622,7 +622,7 @@ model_3_train<-lm(ingtot_boxcox ~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
 summ(model_3_train)
 stargazer(model_3_train , type = "text")
 
-##4 Microempresa, tamaño de la firma, relación laboral
+##4 Microempresa, tamaño de la firma
 model_4_train<-lm(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
                   +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
                   +microEmpresa + sizeFirm + relab, 
@@ -633,13 +633,15 @@ stargazer(model_4_train , type = "text")
 ##5 Age, college*sex y relab, edad
 model_5_train<-lm(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
                   +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
-                  +microEmpresa + sizeFirm + relab+ age + female + college:female , 
+                  +microEmpresa + sizeFirm +relab+ age + college:female , 
                   data= train)
 
 summ(model_5_train)
 stargazer(model_5_train , type = "text")
 
 stargazer(model_1_train,model_2_train,model_3_train,model_4_train,model_5_train, type = "text")
+stargazer(model_1_train,model_2_train,model_3_train,model_4_train,model_5_train)
+
 #table(Base_var$sizeFirm)
 #levels(Base_var$oficio)
 #lm(ingtot_boxcox~relab, train)
@@ -691,51 +693,52 @@ min(MSE_2)
 ########################################################################################################################################
 ## Mejor modelo (lowest average prediction error)
 ##Compute the leverage statistic for each observation in the test sample
-library(dplyr)
-test$experiencia_2<-test$p6426^2
+#library(dplyr)
+#test$experiencia_2<-test$p6426^2
 
-Coefs_leverage<-c(rep(0, 466))
-Coefs_leverage
+#Coefs_leverage<-c(rep(0, 466))
+#Coefs_leverage
 
-matriz<-diag(466)
+#matriz<-diag(466)
 
-test_mat<-cbind(test,matriz)
-colnames(test_mat)
+#test_mat<-cbind(test,matriz)
+#colnames(test_mat)
 
-for (i in 37:503){
-    i<-37
+#for (i in 37:503){
+#    i<-37
     #a<-paste0("...",i)
-    a<-as.factor(test_mat[ ,i:i])
-reg_test_1<-lm(log_income~ maxEducLevel + p6426 + experiencia_2 + a , 
-                 data= test_mat)
-reg_test_2<-lm(log_income~ maxEducLevel + p6426 + experiencia_2,test_mat)$residuals
-reg_test_3 <-lm(a~ maxEducLevel + p6426 + experiencia_2,test_mat)$residuals
-reg_test_leverage<-lm(reg_test_2~reg_test_3 )
+#    a<-as.factor(test_mat[ ,i:i])
+#reg_test_1<-lm(log_income~ maxEducLevel + p6426 + experiencia_2 + a , 
+#                 data= test_mat)
+#reg_test_2<-lm(log_income~ maxEducLevel + p6426 + experiencia_2,test_mat)$residuals
+#reg_test_3 <-lm(a~ maxEducLevel + p6426 + experiencia_2,test_mat)$residuals
+#reg_test_leverage<-lm(reg_test_2~reg_test_3 )
 
-b2<-reg_test_leverage$coefficients[2]
-Coefs_leverage<-rbind(Coefs_leverage,b2)
-}
+#b2<-reg_test_leverage$coefficients[2]
+#Coefs_leverage<-rbind(Coefs_leverage,b2)
+#}
 
-reg_test_1<-lm(log_income~ maxEducLevel + p6426 + experiencia_2 + ...37, 
-               data= test_mat)
+#reg_test_1<-lm(log_income~ maxEducLevel + p6426 + experiencia_2 + ...37, 
+#               data= test_mat)
 
 #Sugerencia de Ignacio#############
-GIH<-data.frame(age=runif(30,18,80))
-GIH<- GIH %>% mutate(age2=age^2,
-                     income=rnorm(30,mean=12+0.06*age-0.001*age2))                
+#GIH<-data.frame(age=runif(30,18,80))
+#GIH<- GIH %>% mutate(age2=age^2,
+#                     income=rnorm(30,mean=12+0.06*age-0.001*age2))                
 
-for(i in 1:dim(GIH)[1]){
+#for(i in 1:dim(GIH)[1]){
   #Estimate the regression model using all but the i − th observation
-  reg_1<-lm(income~age+age2,GIH[-i,])
+#  reg_1<-lm(income~age+age2,GIH[-i,])
   #Calculate the prediction error for the i − th observation, i.e. (yi − yˆi)
-  y_hat<-predict(reg_1,newdata=GIH[i,])
-  u<-(GIH[i,]$income-y_hat)^2
-}
+#  y_hat<-predict(reg_1,newdata=GIH[i,])
+#  u<-(GIH[i,]$income-y_hat)^2
+#}
 
 
 ########################################################################################################################################
 
 ### ----- K-fold Validación cruzada ------#####
+set.seed(10101)
 p_load(caret)
 
 
@@ -761,16 +764,17 @@ model3 <- train(ingtot_boxcox ~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
 
 model4 <- train(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
                 +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
-                +microEmpresa + sizeFirm + relab,
+                +microEmpresa + sizeFirm,
                 data = Base_var, trControl = trainControl(method = "cv", number = 5), 
                 method = "lm")
 
 
 model5 <- train(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
                 +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
-                +microEmpresa + sizeFirm + relab + age + female + college:female ,
+                +microEmpresa + sizeFirm  + age + college:female,
                 data = Base_var, trControl = trainControl(method = "cv", number = 5), 
                 method = "lm")
+
 ###El modelo 6 se estima para validar las anteriores especificaciones
 model6 <- train(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
                 +poly(hoursWorkUsual,9) + dos_trabajo + female + cuentaPropia + informal:age
@@ -790,13 +794,13 @@ ggplot(kfold_RMSE, aes(x = name, y = RMSE)) + geom_line()+ geom_point()
 ##########################################################################################################################################################################
 
 ### ----- LOOCV ------#####
-
+set.seed(10101)
 #LOOCV -sin relab
 error_LOOCV <- c()
 for(i in 1:dim(train)[1]){
   modelo  <- lm(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
                 +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
-                +microEmpresa + sizeFirm ,data=train[-i,])
+                +microEmpresa + sizeFirm  + age + college:female ,data=train[-i,])
   error_LOOCV[i] <- train$ingtot_boxcox[i]-predict(modelo,train[i,])
   print(i)
 }
