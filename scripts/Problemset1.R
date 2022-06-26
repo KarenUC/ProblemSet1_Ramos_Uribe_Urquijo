@@ -625,7 +625,7 @@ stargazer(model_3_train , type = "text")
 ##4 Microempresa, tamaño de la firma
 model_4_train<-lm(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
                   +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
-                  +microEmpresa + sizeFirm + relab, 
+                  +microEmpresa + sizeFirm , 
 data= train)
 summ(model_4_train)
 stargazer(model_4_train , type = "text")
@@ -633,7 +633,7 @@ stargazer(model_4_train , type = "text")
 ##5 Age, college*sex y relab, edad
 model_5_train<-lm(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
                   +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
-                  +microEmpresa + sizeFirm +relab+ age + college:female , 
+                  +microEmpresa + sizeFirm + age + college:female , 
                   data= train)
 
 summ(model_5_train)
@@ -686,6 +686,7 @@ MSE<-rbind(MSE_ingtot_cte, MSE_ingtot_age, MSE_logincome_fem, MSE_logincome_fem_
 min(MSE)
 
 MSE_2<-rbind(MSE_model_1, MSE_model_2, MSE_model_3, MSE_model_4, MSE_model_5)
+View(MSE_2)
 min(MSE_2)
 
 ####
