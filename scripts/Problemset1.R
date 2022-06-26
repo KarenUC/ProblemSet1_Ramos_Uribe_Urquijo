@@ -720,46 +720,28 @@ stargazer(MSE_models)
 ########################################################################################################################################
 ## Mejor modelo (lowest average prediction error)
 ##Compute the leverage statistic for each observation in the test sample
-#library(dplyr)
-#test$experiencia_2<-test$p6426^2
 
-#Coefs_leverage<-c(rep(0, 466))
-#Coefs_leverage
+model_5_test<-lm(ingtot_boxcox~ maxEducLevel_years + exp_pot_p6210 + exp_pot_p6210_2
+                 +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
+                 +microEmpresa + sizeFirm + age + college:female , 
+                 data= test)
 
-#matriz<-diag(466)
+alphas <- c()
+for (j in 1:nrow(test)) {
+  uj <- model_5_test$residuals[j]
+  hj <- lm.influence(model_5_test)$hat[j]
+  alpha <- uj/(1-hj)
+  alphas <- c(alphas, alpha)
+}
 
-#test_mat<-cbind(test,matriz)
-#colnames(test_mat)
 
-#for (i in 37:503){
-#    i<-37
-    #a<-paste0("...",i)
-#    a<-as.factor(test_mat[ ,i:i])
-#reg_test_1<-lm(log_income~ maxEducLevel + p6426 + experiencia_2 + a , 
-#                 data= test_mat)
-#reg_test_2<-lm(log_income~ maxEducLevel + p6426 + experiencia_2,test_mat)$residuals
-#reg_test_3 <-lm(a~ maxEducLevel + p6426 + experiencia_2,test_mat)$residuals
-#reg_test_leverage<-lm(reg_test_2~reg_test_3 )
-
-#b2<-reg_test_leverage$coefficients[2]
-#Coefs_leverage<-rbind(Coefs_leverage,b2)
-#}
-
-#reg_test_1<-lm(log_income~ maxEducLevel + p6426 + experiencia_2 + ...37, 
-#               data= test_mat)
-
-#Sugerencia de Ignacio#############
-#GIH<-data.frame(age=runif(30,18,80))
-#GIH<- GIH %>% mutate(age2=age^2,
-#                     income=rnorm(30,mean=12+0.06*age-0.001*age2))                
-
-#for(i in 1:dim(GIH)[1]){
-  #Estimate the regression model using all but the i − th observation
-#  reg_1<-lm(income~age+age2,GIH[-i,])
-  #Calculate the prediction error for the i − th observation, i.e. (yi − yˆi)
-#  y_hat<-predict(reg_1,newdata=GIH[i,])
-#  u<-(GIH[i,]$income-y_hat)^2
-#}
+uj_1 <-rstandard (model_5_test) #residuales estandarizados
+hj_1 <- lm.influence(model_5_test)$hat () #
+a_1<-ggplot(test, aes(x = hj_1, y = uj_1)) + geom_point()
+a_1
+max(alphas)
+min(alphas)
+mean(alphas)
 
 
 ########################################################################################################################################
