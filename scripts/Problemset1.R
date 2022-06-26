@@ -758,22 +758,13 @@ model4 <- train(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
 
 model5 <- train(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
                 +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
-                +microEmpresa + sizeFirm + relab + age + female + college:female ,
-                data = Base_var, trControl = trainControl(method = "cv", number = 5), 
-                method = "lm")
-###El modelo 6 se estima para validar las anteriores especificaciones
-model6 <- train(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
-                +poly(hoursWorkUsual,9) + dos_trabajo + female + cuentaPropia + informal:age
-                +microEmpresa + sizeFirm + relab+ poly(age,8) + female:cuentaPropia + college:female ,
+                +microEmpresa + sizeFirm + relab+ age + female + college:female ,
                 data = Base_var, trControl = trainControl(method = "cv", number = 5), 
                 method = "lm")
 
-kfold_RMSE<-rbind(model1$results,model2$results,model3$results,model4$results,model5$results, model6$results)
-kfold_RMSE$name<-rbind("model1","model2","model3", "model4", "model5","model6")
+kfold_RMSE<-rbind(model1$results,model2$results,model3$results,model4$results,model5$results)
+kfold_RMSE$name<-rbind("model1","model2","model3", "model4", "model5")
 
-
-ggplot(kfold_RMSE, aes(x = name, y = RMSE)) + geom_line()+ geom_point()
-View(kfold_RMSE)
 
 ggplot(kfold_RMSE, aes(x = name, y = RMSE)) + geom_line()+ geom_point()
 
@@ -781,16 +772,32 @@ ggplot(kfold_RMSE, aes(x = name, y = RMSE)) + geom_line()+ geom_point()
 
 ### ----- LOOCV ------#####
 
-#LOOCV -sin relab
+##### Sugerencia de Karen
+#LOOCV
 error_LOOCV <- c()
-for(i in 1:dim(train)[1]){
-  modelo  <- lm(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
-                +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
-                +microEmpresa + sizeFirm ,data=train[-i,])
-  error_LOOCV[i] <- train$ingtot_boxcox[i]-predict(modelo,train[i,])
+for(i in 1:dim(entrenamiento)[1]){
+  modelo  <- lm(lnprice~rooms+(bathrooms*bedrooms)
+                +factor(property_type)+surface_total+surface_covered+(lat*lon)
+                +hurto+arealic,data=entrenamiento[-i,])
+  error_LOOCV[i] <- entrenamiento$lnprice[i]-predict(modelo,entrenamiento[i,])
   print(i)
 }
 mean(error_LOOCV*error_LOOCV)
+h <- hatvalues(m2)
+
+
+
+
+##Validación cruzada 
+
+##LOOCV
+
+#Loop that does the following: 
+##-Estimate the regression model using all but the i − th observation.
+##-Calculate the prediction error for the i − th observation, i.e. (yi − yˆi)
+##-Calculate the average of the numbers obtained in the previous step to 
+#get the average mean square error. This is known as the Leave-One-Out
+#-Cross-Validation (LOOCV) statistic.
 
 ##Compare the results to those obtained in the computation of the leverage statistic
 
