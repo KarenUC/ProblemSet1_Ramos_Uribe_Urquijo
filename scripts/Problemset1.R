@@ -740,13 +740,21 @@ for (j in 1:nrow(test)) {
   alphas <- c(alphas, alpha)
 }
 
-a_1<-ggplot(test, aes(x = uj_1, y = hj_1)) + geom_point() + labs(x = "Residuales estandarizados)", y = "Leverage (h_j)")
-a_2<-ggplot(test, aes(x = alphas, y = hj_1)) + geom_point() + labs(x = "alphas", y = "Leverage (h_j)")
-a_3<-ggplot(test, aes(x = alphas, y = uj_1)) + geom_point() + labs(x = "alphas", y = "Residuales estandarizados")
+
+table2<-cbind(uj_1, hj_1, alphas)
+table2<- data.frame(table2)
+##datos por encima del percentil p75 para uj y hj y datos por debajo del percentil p25 para uj y hj
+table2<- table2%>%
+  mutate(cuadrante = ifelse(uj_1 > 0.521 & 
+                           hj_1 > 0.0415 | 
+                           uj_1 < -0.544 & 
+                           hj_1 < 0.0222, 1, 0))
+table2$cuadrante<- as.factor(table2$cuadrante)
+
+a_1<-ggplot(table2, aes(x = uj_1, y = hj_1)) + geom_point(mapping = aes(color = cuadrante)) + labs(x = "Residuales estandarizados", y = "Leverage (h_j)")
+a_2<-ggplot(table2, aes(x = alphas, y = hj_1)) + geom_point(mapping = aes(color = cuadrante)) + labs(x = "alphas", y = "Leverage (h_j)")
+a_3<-ggplot(table2, aes(x = alphas, y = uj_1)) + geom_point(mapping = aes(color = cuadrante)) + labs(x = "alphas", y = "Residuales estandarizados")
 ggarrange(a_1, a_2, a_3, nrow = 1, ncol = 3)
-
-##cuadrante 
-
 
 ########################################################################################################################################
 
