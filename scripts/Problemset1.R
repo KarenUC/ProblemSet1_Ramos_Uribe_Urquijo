@@ -725,9 +725,10 @@ model_5_test<-lm(ingtot_boxcox~ maxEducLevel_years + exp_pot_p6210 + exp_pot_p62
                  +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
                  +microEmpresa + sizeFirm + age + college:female , 
                  data= test)
-
+summ(model_5_test)
+stargazer(model_5_test, type = "latex")
 uj_1 <-rstandard (model_5_test) #residuales estandarizados
-hj_1 <- lm.influence(model_5_test)$hat () #leverage statistic
+hj_1 <- lm.influence(model_5_test)$hat #leverage statistic
 skim(uj_1)
 skim(hj_1)
 
@@ -750,11 +751,19 @@ table2<- table2%>%
                            uj_1 < -0.544 & 
                            hj_1 < 0.0222, 1, 0))
 table2$cuadrante<- as.factor(table2$cuadrante)
+tablehead<- head(table2)
+tabletail<- tail(table2)
+xtable(tablehead)
+xtable(tabletail)
+table(table2$cuadrante)
+prop.table(table(table2$cuadrante))
+
 
 a_1<-ggplot(table2, aes(x = uj_1, y = hj_1)) + geom_point(mapping = aes(color = cuadrante)) + labs(x = "Residuales estandarizados", y = "Leverage (h_j)")
 a_2<-ggplot(table2, aes(x = alphas, y = hj_1)) + geom_point(mapping = aes(color = cuadrante)) + labs(x = "alphas", y = "Leverage (h_j)")
 a_3<-ggplot(table2, aes(x = alphas, y = uj_1)) + geom_point(mapping = aes(color = cuadrante)) + labs(x = "alphas", y = "Residuales estandarizados")
 ggarrange(a_1, a_2, a_3, nrow = 1, ncol = 3)
+
 
 ########################################################################################################################################
 
