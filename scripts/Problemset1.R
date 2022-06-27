@@ -847,7 +847,7 @@ for(i in 1:dim(train)[1]){
   error_LOOCV[i] <- train$ingtot_boxcox[i]-predict(modelo,train[i,])
   print(i)
 }
-mean(error_LOOCV*error_LOOCV)
+mse_LOOCV_train<-mean(error_LOOCV*error_LOOCV)
 CV_LOOCV<-sum(error_LOOCV^2)/nrow(train)
 
 
@@ -861,14 +861,15 @@ for(i in 1:dim(test)[1]){
   error_LOOCV_test[i] <- test$ingtot_boxcox[i]-predict(modelo,test[i,])
   print(i)
 }
-mean(error_LOOCV_test*error_LOOCV_test)
+mse_LOOCV_test<-mean(error_LOOCV_test*error_LOOCV_test)
 
 A_2<-table2$alphas^2
-cv<-sum(A_2)/nrow(test)
-cv
+CV_leverage<-sum(A_2)/nrow(test)
 
 
+Tabla5<-cbind(mse_LOOCV_test,CV_leverage)
+xtable(Tabla5)
 
 ##Compare the results to those obtained in the computation of the leverage statistic
-
+write.csv(Base_var,file = "GEIH.csv")
 
