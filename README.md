@@ -9,5 +9,4 @@ Este trabajo contiene:
 - `document`: Documento final PDF, desarrollo PS1.
 - `scripts`: Scripts de R
 - `stores`: Bases utilizadas (GEIH)
-- `views`: Imágenes y tablas
-
+- `views`: Imágenes
