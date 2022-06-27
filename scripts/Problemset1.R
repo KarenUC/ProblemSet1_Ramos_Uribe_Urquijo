@@ -822,7 +822,7 @@ model6 <- train(ingtot_boxcox~ maxEducLevel_years + exp_pot_p6210 + exp_pot_p621
 kfold_RMSE<-rbind(model1$results,model2$results,model3$results,model4$results,model5$results, model6$results)
 kfold_RMSE$name<-rbind("model1","model2","model3", "model4", "model5","model6")
 rownames(kfold_RMSE)<-c("model1","model2","model3", "model4", "model5","model6")
-kfold_RMSE$MSE<-sqrt(kfold_RMSE$RMSE)
+kfold_RMSE$MSE<-(kfold_RMSE$RMSE)^2
 Z1<-ggplot(kfold_RMSE, aes(x = name, y = RMSE)) + geom_line()+ geom_point()+ labs(x = "Modelo")
 Z2<-ggplot(kfold_RMSE, aes(x = name, y = MSE)) + geom_line()+ geom_point() + labs(x = "Modelo")
 
@@ -838,7 +838,7 @@ xtable(kfold_RMSE)
 
 ### ----- LOOCV ------#####
 set.seed(10101)
-#LOOCV -sin relab
+#LOOCV 
 error_LOOCV <- c()
 for(i in 1:dim(train)[1]){
   modelo  <- lm(ingtot_boxcox~ maxEducLevel_years + exp_pot_p6210 + exp_pot_p6210_2
@@ -848,6 +848,11 @@ for(i in 1:dim(train)[1]){
   print(i)
 }
 mean(error_LOOCV*error_LOOCV)
+H1<-hist(error_LOOCV)
+H2<-hist(table2$uj_1)
+ggplot(error_LOOCV, aes(x = name, y = MSE)) + geom_line()+ geom_point() + labs(x = "Modelo")
+ggarrange(H1, H2, nrow = 1, ncol = 2)
+
 
 ##Compare the results to those obtained in the computation of the leverage statistic
 
