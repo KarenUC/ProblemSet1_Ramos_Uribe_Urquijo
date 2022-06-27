@@ -758,10 +758,16 @@ xtable(tabletail)
 table(table2$cuadrante)
 prop.table(table(table2$cuadrante))
 
+mean_lev<-mean(hj_1)
+mean_rs<-mean(uj_1)
+mean_alph<-mean(alpha)
 
 a_1<-ggplot(table2, aes(x = uj_1, y = hj_1)) + geom_point(mapping = aes(color = cuadrante)) + labs(x = "Residuales estandarizados", y = "Leverage (h_j)")
+a_1<-a_1 + geom_vline(xintercept = 0.0001108766) + geom_hline(yintercept = 0.03433476)
 a_2<-ggplot(table2, aes(x = alphas, y = hj_1)) + geom_point(mapping = aes(color = cuadrante)) + labs(x = "alphas", y = "Leverage (h_j)")
+a_2<-a_2 + geom_vline(xintercept = 0.7956166) + geom_hline(yintercept = 0.03433476)
 a_3<-ggplot(table2, aes(x = alphas, y = uj_1)) + geom_point(mapping = aes(color = cuadrante)) + labs(x = "alphas", y = "Residuales estandarizados")
+a_3<-a_3 + geom_vline(xintercept = 0.7956166) + geom_hline(yintercept = 0.0001108766)
 ggarrange(a_1, a_2, a_3, nrow = 1, ncol = 3)
 
 
