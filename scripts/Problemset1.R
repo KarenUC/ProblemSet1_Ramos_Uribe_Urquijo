@@ -640,8 +640,7 @@ summ(model_5_train)
 stargazer(model_5_train , type = "text")
 
 stargazer(model_1_train,model_2_train,model_3_train,model_4_train,model_5_train, type = "text")
-stargazer(model_1_train,model_2_train,model_3_train)
-stargazer(model_4_train,model_5_train)
+stargazer(model_1_train,model_2_train,model_3_train,model_4_train,model_5_train)
 
 #table(Base_var$sizeFirm)
 #levels(Base_var$oficio)
@@ -713,6 +712,8 @@ min(MSE_2)
 
 MSE_models<-cbind(MSE_2_t,MSE_2)
 colnames(MSE_models)<-c("Train", "Test")
+rownames(MSE_models)<-c("model1","model2","model3", "model4", "model5")
+stargazer(MSE_models, type = "text")
 stargazer(MSE_models)
 
 ####
@@ -783,36 +784,36 @@ RMSE_modelcte1<-with(test,mean((ingtot_boxcox-coef(modelcte1))^2))
 
 Base_var<-Base_var %>% mutate(dos_trabajo = ifelse(p7040==2, 0,1))
 
-model1 <- train(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2, 
+model1 <- train(ingtot_boxcox~ maxEducLevel_years + exp_pot_p6210 + exp_pot_p6210_2, 
                 data = Base_var, trControl = trainControl(method = "cv", number = 5), 
                 method = "lm")
 
 
-model2 <- train(ingtot_boxcox ~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
+model2 <- train(ingtot_boxcox ~ maxEducLevel_years + exp_pot_p6210 + exp_pot_p6210_2
                 +hoursWorkUsual + dos_trabajo,
                 data = Base_var, trControl = trainControl(method = "cv", number = 5), 
                 method = "lm")
 
-model3 <- train(ingtot_boxcox ~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
+model3 <- train(ingtot_boxcox ~ maxEducLevel_years + exp_pot_p6210 + exp_pot_p6210_2
                 +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal, 
                 data = Base_var, trControl = trainControl(method = "cv", number = 5), 
                 method = "lm")
 
-model4 <- train(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
+model4 <- train(ingtot_boxcox~ maxEducLevel_years + exp_pot_p6210 + exp_pot_p6210_2
                 +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
                 +microEmpresa + sizeFirm,
                 data = Base_var, trControl = trainControl(method = "cv", number = 5), 
                 method = "lm")
 
 
-model5 <- train(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
+model5 <- train(ingtot_boxcox~ maxEducLevel_years + exp_pot_p6210 + exp_pot_p6210_2
                 +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
                 +microEmpresa + sizeFirm  + age + college:female,
                 data = Base_var, trControl = trainControl(method = "cv", number = 5), 
                 method = "lm")
 
 ###El modelo 6 se estima para validar las anteriores especificaciones
-model6 <- train(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
+model6 <- train(ingtot_boxcox~ maxEducLevel_years + exp_pot_p6210 + exp_pot_p6210_2
                 +poly(hoursWorkUsual,9) + dos_trabajo + female + cuentaPropia + informal:age
                 +microEmpresa + sizeFirm + relab+ poly(age,8) + female:cuentaPropia + college:female ,
                 data = Base_var, trControl = trainControl(method = "cv", number = 5), 
@@ -840,7 +841,7 @@ set.seed(10101)
 #LOOCV -sin relab
 error_LOOCV <- c()
 for(i in 1:dim(train)[1]){
-  modelo  <- lm(ingtot_boxcox~ maxEducLevel + exp_pot_p6210 + exp_pot_p6210_2
+  modelo  <- lm(ingtot_boxcox~ maxEducLevel_years + exp_pot_p6210 + exp_pot_p6210_2
                 +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
                 +microEmpresa + sizeFirm  + age + college:female ,data=train[-i,])
   error_LOOCV[i] <- train$ingtot_boxcox[i]-predict(modelo,train[i,])
