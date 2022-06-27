@@ -848,10 +848,25 @@ for(i in 1:dim(train)[1]){
   print(i)
 }
 mean(error_LOOCV*error_LOOCV)
-H1<-hist(error_LOOCV)
-H2<-hist(table2$uj_1)
-ggplot(error_LOOCV, aes(x = name, y = MSE)) + geom_line()+ geom_point() + labs(x = "Modelo")
-ggarrange(H1, H2, nrow = 1, ncol = 2)
+CV_LOOCV<-sum(error_LOOCV^2)/nrow(train)
+
+
+set.seed(10101)
+#LOOCV 
+error_LOOCV_test <- c()
+for(i in 1:dim(test)[1]){
+  modelo  <- lm(ingtot_boxcox~ maxEducLevel_years + exp_pot_p6210 + exp_pot_p6210_2
+                +hoursWorkUsual + dos_trabajo + female + cuentaPropia + informal
+                +microEmpresa + sizeFirm  + age + college:female ,data=test[-i,])
+  error_LOOCV_test[i] <- test$ingtot_boxcox[i]-predict(modelo,test[i,])
+  print(i)
+}
+mean(error_LOOCV_test*error_LOOCV_test)
+
+A_2<-table2$alphas^2
+cv<-sum(A_2)/nrow(test)
+cv
+
 
 
 ##Compare the results to those obtained in the computation of the leverage statistic
